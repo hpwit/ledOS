@@ -1,0 +1,15 @@
+{
+  "name": "LedOS",
+  "keywords": "LedOS",
+  "description": "",
+  "homepage": "",
+  "repository":
+  {
+    "type": "git",
+    "url": ""
+  },
+  "version": "0.0.1",
+  "frameworks": "arduino",
+  "platforms": "*"
+}
+
