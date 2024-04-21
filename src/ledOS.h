@@ -27,8 +27,8 @@ public:
   vector<Console_keyword_command> keyword_commands;
 
   ConsoleMode cmode;
-  vector<string> script;
-  ;
+  list<string> script;
+  
   bool displayf = true;
   string defaultformat = config.ESC_RESET; //+termBackgroundColor.Black+termColor.BGreen;
   string errorformat = config.ESC_RESET;   //+termBackgroundColor.Black+termColor.Red+termFormat.Bold;

@@ -180,9 +180,78 @@ void rm(Console *cons, vector<string> args)
     printf("%s\r\n", config.ESC_RESET);
   }
 }
-void load(string name, string *buff)
+
+
+void manageTabulation(Console *cons)
 {
-  bool er = fileSystem.load(name, buff);
+  vector<string> j;
+  string search_sentence;
+   j=split(cons->sentence," ");
+      
+       search_sentence=j[j.size()-1];
+  if (search_sentence.size() < 1)
+  {
+    return;
+  }
+  else
+  {
+    if (__toBeUpdated)
+    {
+
+       
+      fileSystem.ls("w");
+      cons->searchContent.clear();
+      
+      for (string h : fileSystem.result)
+      {
+        string l = h.substr(0, search_sentence.size());
+        if (l.compare(search_sentence) == 0)
+        {
+
+          cons->searchContent.addCommandToHistory(h);
+        }
+      }
+      cons->searchContent.current_read=0;
+      __toBeUpdated = false;
+      // Serial.printf("%d",cons->searchContent.history.size());
+    }
+  }
+  string f = cons->searchContent.getCommandHistoryCircular();
+  if (f.compare("") != 0)
+  {
+    _push(moveleft(search_sentence.size()).c_str());
+    if(j.size()>1)
+    {
+     cons->sentence=j[0];
+    for(int i=1;i<j.size()-1;i++)
+    {
+      cons->sentence=cons->sentence+" "+j[i];
+    }
+     cons->sentence=cons->sentence+" "+f;
+    }
+    else
+    {
+    cons->sentence=f;
+    }
+    cons->internal_coordinates.x = cons->sentence.size() + 1;
+    _push(f.c_str());
+    _push(config.ERASE_FROM_CURSOR_TO_EOL);
+  }
+}
+
+void load(Console *cons, vector<string> args)
+{
+  _push(config.ENDLINE);
+  if(args.size()<1)
+  {
+        printf("%s", termColor.Red);
+    printf("Error:%s", "No argument provided");
+    printf("%s\r\n", config.ESC_RESET);
+    return;
+  }
+  //string buff;
+  cons->script.clear();
+bool er = fileSystem.load(args[0], &cons->script);
   if (!er)
   {
     printf("%s", termColor.Red);
@@ -195,44 +264,38 @@ void load(string name, string *buff)
   }
 }
 
-void manageTabulation(Console *cons)
+
+
+void type(Console *cons, vector<string> args)
 {
-  vector<string> j;
-  if (cons->search_sentence.size() < 1)
+  _push(config.ENDLINE);
+  _push(termColor.Cyan);
+  if(args.size()<1)
   {
+   for(string j:cons->script)
+   {
+    _push(j.c_str());
+    _push(config.ENDLINE);
+   }
+   _push(config.ESC_RESET);
     return;
   }
-  else
-  {
-    if (__toBeUpdated)
-    {
-      
-      fileSystem.ls("w");
-      cons->searchContent.clear();
-      for (string h : fileSystem.result)
-      {
-        string l = h.substr(0, cons->search_sentence.size());
-        if (l.compare(cons->search_sentence) == 0)
-        {
+  
+  else{
+    load(cons,args);
+     _push(config.ENDLINE);
+  _push(termColor.Cyan);
 
-          cons->searchContent.addCommandToHistory(h);
-        }
-      }
-      __toBeUpdated = false;
-      // Serial.printf("%d",cons->searchContent.history.size());
-    }
-  }
-  string f = cons->searchContent.getCommandHistoryCircular();
-  if (f.compare("") != 0)
-  {
-    _push(moveleft(cons->search_sentence.size()).c_str());
-    cons->sentence = f;
-     cons->search_sentence=f;
-    cons->internal_coordinates.x = cons->sentence.size() + 1;
-    _push(cons->search_sentence.c_str());
-    _push(config.ERASE_FROM_CURSOR_TO_EOL);
+   for(string j:cons->script)
+   {
+    _push(j.c_str());
+    _push(config.ENDLINE);
+   }
+   _push(config.ESC_RESET);
+
   }
 }
+
 
 void initEscCommands(Console *cons)
 {
@@ -244,6 +307,7 @@ void initEscCommands(Console *cons)
   // cons->addEscCommand(22, switchfooter);
   cons->addKeywordCommand("ls", ls);
   cons->addKeywordCommand("cls", cls);
-  // cons->addKeywordCommand("clear", clear);
+   cons->addKeywordCommand("load", load);
+   cons->addKeywordCommand("type", type);
   //  cons->addEscCommand(27,top);
 }

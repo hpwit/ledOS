@@ -191,14 +191,14 @@ void clear()
     
     if (history.size() > 0)
     {
-     
-      current_read--;
-      if (current_read <0)
-      {
-        current_read = current_save-1;
-      }
       string s = history[current_read];
       
+      current_read++;
+      if (current_read >=current_save)
+      {
+        current_read = 0;
+      }
+     
       return s;
     }
     else

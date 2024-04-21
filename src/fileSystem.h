@@ -165,6 +165,45 @@ public:
         }
     }
 
+  
+  bool load(string name, list<string> *buff)
+  {
+       result.clear();
+        string _name = current_path + name;
+        if (!current_mount->fs->exists(_name.c_str()))
+        {
+            result.push_back(string_format("File %s does not exists.", name.c_str()));
+            return false;
+        }
+        else
+        {
+            // open file and read it and push it in the buffer
+            File file = current_mount->fs->open(_name.c_str(), FILE_READ);
+            if (!file)
+            {
+                result.push_back(string_format("Impossible to open %s", name.c_str()));
+                return false;
+            }
+
+            string tmp="";
+            while (file.available())
+            { 
+                char c=file.read();
+                if(c=='\n')
+                {
+                    buff->push_back(tmp);
+                    tmp="";
+                }
+                else
+                {
+                tmp += c;
+                }
+            }
+            result.push_back(string_format("File %s loaded.", name.c_str()));
+            return true;
+        }    
+  }
+
     bool load(string name, string *buff)
     {
         result.clear();
