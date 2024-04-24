@@ -1,5 +1,6 @@
 
 #pragma once
+#define __CONSOLE_ESP32
 #include "string_function.h"
 #include "ledOStruct.h"
 
@@ -16,8 +17,8 @@ class Console
 {
 public:
   string (*prompt)(Console *cons);
-  int height = 200;
-  int width = 200;
+  int height = 2000;
+  int width = 2000;
   coord internal_coordinates;
   vector<char *> defaultPromptFormatColor;
   vector<char *> editorPromptFormatColor;
@@ -25,10 +26,11 @@ public:
   string search_sentence;
   vector<Console_esc_command> esc_commands;
   vector<Console_keyword_command> keyword_commands;
-
+  vector<highlight_struct> highLighting;
+  highlight_struct *current_hightlight;
   ConsoleMode cmode;
   list<string> script;
-  
+
   bool displayf = true;
   string defaultformat = config.ESC_RESET; //+termBackgroundColor.Black+termColor.BGreen;
   string errorformat = config.ESC_RESET;   //+termBackgroundColor.Black+termColor.Red+termFormat.Bold;
@@ -68,8 +70,19 @@ public:
     cmode = keyword;
     prompt = &defaultPrompt;
     currentformat = defaultformat;
+    addHightLightinf("", default_highlightfunction, NULL, NULL);
+    current_hightlight = &highLighting[0];
   }
 
+  void addHightLightinf(string ext, string (*highLight)(string), void (*init)(), void (*newline)())
+  {
+    highlight_struct es;
+    es.extension = ext;
+    es.highLight = highLight;
+    es.init = init;
+    es.newLine = newline;
+    highLighting.push_back(es);
+  }
   bool analyseEscCommand(char c)
   {
     for (int i = 0; i < esc_commands.size(); i++)
@@ -160,6 +173,8 @@ public:
 
     while (1)
     {
+
+      // while(!(Serial.available()>0));
       if (Serial.available() > 0)
       {
         c = Serial.read();
@@ -190,15 +205,30 @@ public:
             {
               manageTabulation(this);
             }
-            break;
-            case ' ':
-            sentence+=c;
-            search_sentence="";
-             __toBeUpdated = true;
-            Serial.write(c);
+            else if (cmode == edit)
+            {
+              addCharacterEditor(c);
+            }
 
-            internal_coordinates.x++;
             break;
+
+          case ' ':
+
+            if (cmode == keyword)
+            {
+              search_sentence = "";
+              __toBeUpdated = true;
+              sentence += c;
+              Serial.write(c);
+              internal_coordinates.x++;
+            }
+            else if (cmode == edit)
+            {
+              addCharacterEditor(c);
+            }
+
+            break;
+
           case '\r':
           {
 
@@ -238,7 +268,7 @@ public:
                 }
                 else
                 {
-                  gotoline();
+                  //  gotoline();
                 }
               }
               else
@@ -247,24 +277,63 @@ public:
               }
               _push(prompt(this).c_str());
               sentence = "";
-              search_sentence="";
+              search_sentence = "";
               __toBeUpdated = true;
               delay(10);
+            }
+            else if (cmode == edit)
+            {
+              sentence = "";
+              if (current_hightlight->newLine)
+              current_hightlight->newLine();
+
+              _push(config.HIDECURSOR);
+              _push(config.MOVEDOWN);
+              _push(config.BEGIN_OF_LINE);
+             
+              internal_coordinates.x = 1;
+              internal_coordinates.y++;
+              internal_coordinates.internaly++;
+              _push(prompt(this).c_str());
+               _push(config.SHOWCURSOR);
             }
           }
           break;
           default:
-            sentence += c;
-            search_sentence += c;
-            __toBeUpdated = true;
-            Serial.write(c);
+            if (cmode == keyword)
+            {
+              sentence += c;
+              search_sentence += c;
+              __toBeUpdated = true;
+              Serial.printf("%c", c);
 
-            internal_coordinates.x++;
+              internal_coordinates.x++;
+            }
+            else if (cmode == edit)
+            {
+              // sentence += c;
+              addCharacterEditor(c);
+            }
             break;
           }
-        };
+        }
       }
     }
+  }
+
+  void addCharacterEditor(char c)
+  {
+    _push(config.HIDECURSOR);
+    _push(config.SAVE);
+    _push(config.BEGIN_OF_LINE);
+    _push(moveright(5).c_str());
+    sentence = sentence.substr(0, internal_coordinates.x - 1) + c + sentence.substr(internal_coordinates.x - 1, sentence.size());
+    _push(current_hightlight->highLight(sentence).c_str());
+    _push(config.RESTORE);
+    _push(config.FORWARD);
+   _push(config.SHOWCURSOR);
+
+    internal_coordinates.x++;
   }
 };
 #include "ledOShelper.h"

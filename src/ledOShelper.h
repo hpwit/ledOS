@@ -16,6 +16,63 @@ void editorright(Console *cons)
     _push(config.FORWARD);
   }
 }
+
+void promptup(Console *cons)
+{
+  if (cons->sentence.size() >= 1)
+    _push(moveleft(cons->sentence.size()).c_str());
+  cons->sentence = cons->commands.getCommandHistoryUp();
+  cons->search_sentence = cons->sentence;
+  cons->internal_coordinates.x = cons->sentence.size() + 1;
+  _push(cons->sentence.c_str());
+  _push(config.ERASE_FROM_CURSOR_TO_EOL);
+}
+
+void promptdown(Console *cons)
+{
+  if (cons->sentence.size() >= 1)
+    _push(moveleft(cons->sentence.size()).c_str());
+  cons->sentence = cons->commands.getCommandHistoryDown();
+  cons->search_sentence = cons->sentence;
+  cons->internal_coordinates.x = cons->sentence.size() + 1;
+  _push(cons->sentence.c_str());
+  _push(config.ERASE_FROM_CURSOR_TO_EOL);
+}
+
+void mouseMouvement(Console *cons)
+{
+  char c1 = Serial.read();
+  char c2 = Serial.read();
+  char c3 = Serial.read();
+  switch (c1)
+  {
+  case 96:
+    if (cons->cmode == edit)
+    {
+      // editorup(cons);
+    }
+    else
+    {
+
+      promptup(cons);
+    }
+    break;
+  case 97:
+    if (cons->cmode == edit)
+    {
+      // editorup(cons);
+    }
+    else
+    {
+
+      promptdown(cons);
+    }
+    break;
+
+  default:
+    break;
+  }
+}
 void extraEscCommand(Console *cons)
 {
   char c1 = Serial.read();
@@ -32,14 +89,8 @@ void extraEscCommand(Console *cons)
       }
       else
       {
-        if (cons->sentence.size() >= 1)
-          _push(moveleft(cons->sentence.size()).c_str());
-        cons->sentence = cons->commands.getCommandHistoryUp();
-        cons->search_sentence = cons->sentence;
-        cons->internal_coordinates.x = cons->sentence.size() + 1;
-        _push(cons->sentence.c_str());
-        _push(config.ERASE_FROM_CURSOR_TO_EOL);
-        // Serial.printf("%d",cons->internal_coordinates.x);
+
+        promptup(cons);
       }
     }
     break;
@@ -50,13 +101,7 @@ void extraEscCommand(Console *cons)
       }
       else
       {
-        if (cons->sentence.size() >= 1)
-          _push(moveleft(cons->sentence.size()).c_str());
-        cons->sentence = cons->commands.getCommandHistoryDown();
-        cons->search_sentence = cons->sentence;
-        cons->internal_coordinates.x = cons->sentence.size() + 1;
-        _push(cons->sentence.c_str());
-        _push(config.ERASE_FROM_CURSOR_TO_EOL);
+        promptdown(cons);
       }
       break;
     case 67:
@@ -65,7 +110,18 @@ void extraEscCommand(Console *cons)
     case 68:
       editorleft(cons);
       break;
+
+    case 'M':
+    {
+      mouseMouvement(cons);
+    }
+    break;
     default:
+      while (Serial.available() > 0)
+      {
+        Serial.printf("%c; %d : ", c2, Serial.read());
+      }
+      _push(config.ENDLINE);
       break;
     }
   }
@@ -73,7 +129,7 @@ void extraEscCommand(Console *cons)
 static void cls(Console *cons, vector<string> args)
 {
 
-  Serial.print("\u001b[2J\u001b[0;0H");
+   _push("\u001b[2J\u001b[1000A\u001b[1000D");
   cons->internal_coordinates.y = 1;
   cons->internal_coordinates.internaly = 0;
   cons->internal_coordinates.x = 1;
@@ -87,7 +143,7 @@ void cls(Console *cons)
 
 string defaultPrompt(Console *cons)
 {
-  return string_format("%sLedOS>", cons->defaultformat.c_str(), cons->internal_coordinates.x, cons->internal_coordinates.y);
+  return string_format("%s%sLedOS>", config.ENABLE_MOUSE, cons->defaultformat.c_str(), cons->internal_coordinates.x, cons->internal_coordinates.y);
 }
 
 string editPrompt(Console *cons)
@@ -150,7 +206,7 @@ void ls(Console *cons, vector<string> args)
       printf("%s\r\n", (*it).c_str());
     }
   }
-  __toBeUpdated=true;
+  __toBeUpdated = true;
 }
 
 void rm(Console *cons, vector<string> args)
@@ -181,14 +237,13 @@ void rm(Console *cons, vector<string> args)
   }
 }
 
-
 void manageTabulation(Console *cons)
 {
   vector<string> j;
   string search_sentence;
-   j=split(cons->sentence," ");
-      
-       search_sentence=j[j.size()-1];
+  j = split(cons->sentence, " ");
+
+  search_sentence = j[j.size() - 1];
   if (search_sentence.size() < 1)
   {
     return;
@@ -198,10 +253,9 @@ void manageTabulation(Console *cons)
     if (__toBeUpdated)
     {
 
-       
       fileSystem.ls("w");
       cons->searchContent.clear();
-      
+
       for (string h : fileSystem.result)
       {
         string l = h.substr(0, search_sentence.size());
@@ -211,7 +265,7 @@ void manageTabulation(Console *cons)
           cons->searchContent.addCommandToHistory(h);
         }
       }
-      cons->searchContent.current_read=0;
+      cons->searchContent.current_read = 0;
       __toBeUpdated = false;
       // Serial.printf("%d",cons->searchContent.history.size());
     }
@@ -220,18 +274,18 @@ void manageTabulation(Console *cons)
   if (f.compare("") != 0)
   {
     _push(moveleft(search_sentence.size()).c_str());
-    if(j.size()>1)
+    if (j.size() > 1)
     {
-     cons->sentence=j[0];
-    for(int i=1;i<j.size()-1;i++)
-    {
-      cons->sentence=cons->sentence+" "+j[i];
-    }
-     cons->sentence=cons->sentence+" "+f;
+      cons->sentence = j[0];
+      for (int i = 1; i < j.size() - 1; i++)
+      {
+        cons->sentence = cons->sentence + " " + j[i];
+      }
+      cons->sentence = cons->sentence + " " + f;
     }
     else
     {
-    cons->sentence=f;
+      cons->sentence = f;
     }
     cons->internal_coordinates.x = cons->sentence.size() + 1;
     _push(f.c_str());
@@ -242,16 +296,16 @@ void manageTabulation(Console *cons)
 void load(Console *cons, vector<string> args)
 {
   _push(config.ENDLINE);
-  if(args.size()<1)
+  if (args.size() < 1)
   {
-        printf("%s", termColor.Red);
+    printf("%s", termColor.Red);
     printf("Error:%s", "No argument provided");
     printf("%s\r\n", config.ESC_RESET);
     return;
   }
-  //string buff;
+  // string buff;
   cons->script.clear();
-bool er = fileSystem.load(args[0], &cons->script);
+  bool er = fileSystem.load(args[0], &cons->script);
   if (!er)
   {
     printf("%s", termColor.Red);
@@ -264,42 +318,111 @@ bool er = fileSystem.load(args[0], &cons->script);
   }
 }
 
-
-
 void type(Console *cons, vector<string> args)
 {
   _push(config.ENDLINE);
   _push(termColor.Cyan);
-  if(args.size()<1)
+   if(cons->current_hightlight->init!=NULL )
+     cons->current_hightlight->init();
+  if (args.size() < 1)
   {
-   for(string j:cons->script)
-   {
-    _push(j.c_str());
-    _push(config.ENDLINE);
-   }
-   _push(config.ESC_RESET);
+    for (string j : cons->script)
+    {
+     //Òcons->current_hightlight->highLight(sentence)
+     if(cons->current_hightlight->newLine!=NULL )
+     cons->current_hightlight->newLine();
+      _push(cons->current_hightlight->highLight(j).c_str());
+      _push(config.ENDLINE);
+    }
+    _push(config.ESC_RESET);
     return;
   }
-  
-  else{
-    load(cons,args);
-     _push(config.ENDLINE);
-  _push(termColor.Cyan);
 
-   for(string j:cons->script)
-   {
-    _push(j.c_str());
+  else
+  {
+    load(cons, args);
     _push(config.ENDLINE);
-   }
-   _push(config.ESC_RESET);
+    _push(termColor.Cyan);
 
+    for (string j : cons->script)
+    {
+           if(cons->current_hightlight->newLine!=NULL )
+     cons->current_hightlight->newLine();
+      _push(cons->current_hightlight->highLight(j).c_str());
+      _push(config.ENDLINE);
+    }
+    _push(config.ESC_RESET);
   }
 }
 
+void exitProgMode(Console *cons)
+{
+  if (cons->cmode == edit)
+  {
+
+    if (cons->internal_coordinates.y > cons->script.size())
+    {
+      if (cons->sentence.size() > 0)
+        cons->script.push_back(cons->sentence);
+      ;
+      cons->sentence = "";
+      // cons->gotoline();
+    }
+    else
+    {
+      //cons->script[cons->internal_coordinates.y - 1] = cons->sentence;
+      cons->sentence = "";
+    }
+    cons->cmode = keyword;
+    cons->prompt = &defaultPrompt;
+    cons->currentformat = cons->defaultformat;
+    /*
+    Serial.printf("%s",config.ESC_RESET);
+    Serial.printf("%s",termColor.Magenta);
+    Serial.printf("Exiting edit mode to re enter Ctrl+p");
+    */
+   // cls(cons);
+    cons->displayf = false;
+    // cons->gotoline();
+    // Serial.printf("%s",config.ESC_RESET);
+   //_push(cons->prompt(cons).c_str());
+    // cons->gotoline();
+  }
+}
+void enterProgMode(Console *cons)
+{
+  if (cons->cmode == keyword)
+  {
+    _push(config.SAVESCREEN);
+    cons->displayf = true;
+    cons->cmode = edit;
+    cons->height = 200;
+    cons->width = 200;
+    cons->prompt = &editPrompt;
+    cons->sentence = "";
+    cons->currentformat = cons->editcontent;
+    getConsoleSize();
+    cls(cons);
+    cons->displayf = true;
+    if(cons->current_hightlight->init)
+      cons->current_hightlight->init();
+   // _list(cons, 1, cons->height - 1);
+    
+    if (cons->script.size() < cons->height - 1)
+    {
+      _push(cons->prompt(cons).c_str());
+    }
+  }
+  else
+  {
+    _push(config.RESTORESCREEN);
+    exitProgMode(cons);
+  }
+}
 
 void initEscCommands(Console *cons)
 {
-  // cons->addEscCommand(16, enterProgMode);
+   cons->addEscCommand(16, enterProgMode);
   cons->addEscCommand(27, extraEscCommand);
   // cons->addEscCommand(15, test);
   // cons->addEscCommand(5, scrollup);
@@ -307,7 +430,9 @@ void initEscCommands(Console *cons)
   // cons->addEscCommand(22, switchfooter);
   cons->addKeywordCommand("ls", ls);
   cons->addKeywordCommand("cls", cls);
-   cons->addKeywordCommand("load", load);
-   cons->addKeywordCommand("type", type);
+  cons->addKeywordCommand("load", load);
+  cons->addKeywordCommand("type", type);
   //  cons->addEscCommand(27,top);
 }
+
+

@@ -25,6 +25,11 @@ typedef struct
   const char *BMagenta = "\u001b[35;1m";
   const char *BCyan = "\u001b[36;1m";
   const char *Grey = "\u001b[38;5;240m";
+  const char *Orange = "\u001b[38;5;215m";
+   const char *LMagenta = "\u001b[38;5;219m";
+   const char *LYellow = "\u001b[38;5;191m";
+     const char *LCyan = "\u001b[38;5;86m";
+      const char *LBlue = "\u001b[38;5;123m";
 } _termColor;
 _termColor termColor;
 
@@ -73,11 +78,14 @@ typedef struct
   const char *SCROLLUP = "\u001b[0S";
   const char *SAVE = "\u001b[s";
   const char *RESTORE = "\u001b[u";
-  const char *SHOWCURSOR = "\u001b[25h";
+  const char *SHOWCURSOR = "\u001b[?25h";
   const char *DELINE = "\u001b[2K";
-  const char *HIDECURSOR = "\u001b[25l";
+  const char *HIDECURSOR = "\u001b[?25l";
   const char *BEGIN_OF_LINE = "\u001b[0G";
   const char *ERASE_FROM_CURSOR_TO_EOL = "\u001b[0K";
+  const char *ENABLE_MOUSE= "";//"\u001b[?1000h";
+  const char *SAVESCREEN ="\u001b[?47h";
+  const char *RESTORESCREEN ="\u001b[?47l";
 } _config;
 _config config;
 
@@ -102,6 +110,15 @@ typedef struct
   void (*command)(Console *cons, vector<string> args);
 } Console_keyword_command;
 
+
+typedef struct
+{
+  string extension;
+  string (*highLight)(string str);
+  void(*init)();
+  void(*newLine)();
+} highlight_struct;
+
 enum ConsoleMode
 {
   keyword,
@@ -109,29 +126,53 @@ enum ConsoleMode
   execute
 };
 
+
+
 string getEscapeSequence()
 {
   bool first = true;
   char c;
   string res;
-  while (1)
-  {
-    if (Serial.available() > 0)
+  res="";
+ // while (1)
+  //{
+    while(!(Serial.available()>0));
+    while (Serial.available() > 0)
     {
       c = Serial.read();
       res += c;
+      
+      /*
       if (c >= 65 and c <= 90)
       {
+        Serial.printf("size:%d\n",res.size());
         return res;
-      }
+     }*/
     }
-  }
+  //}
+  // Serial.printf("size:%d\n",res.size());
+return res;
 }
 
+void getMousePos()
+{
+    coord co;
+  char t,x, y;
+  
+    _push(config.ENABLE_MOUSE);
+    string res = getEscapeSequence();
+    sscanf(res.c_str(), "\033[M%c%c%c",&t, &y, &x);
+  
+
+ Serial.printf("mouse: %d %d %d\n",t,x-32,y-32);
+  return ;
+}
 coord getCursorPos()
 {
   coord co;
   int x, y;
+
+
   do
   {
     Serial.print("\u001b[6n");
@@ -145,6 +186,7 @@ coord getCursorPos()
 }
 void getConsoleSize()
 {
+  // getMousePos();
   Serial.printf("%s", config.SAVE);
   Serial.printf("%s", config.DOWN);
   Serial.printf("\u001b[10000C");
@@ -266,4 +308,14 @@ string moveright(int i)
 }
 
 bool __toBeUpdated;
+
+string default_highlightfunction(string str)
+{
+  return str;
+}
+
+highlight_struct default_highlight={
+  .extension = " ",
+  .highLight =  default_highlightfunction
+};
 #endif
