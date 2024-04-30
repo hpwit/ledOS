@@ -38,11 +38,16 @@ bool compare_nocase(const _files &first, const _files &second)
 class FileSystem
 {
 public:
-    FileSystem()
-    {
+    FileSystem(){
+        init();
+    }
+void init()
+{
+    printf("Init Filesystem\r\n");
         mount_point spiff;
         if (SPIFFS.begin(true))
         {
+
             spiff.fs = &SPIFFS;
             spiff.name = "SPIFFS";
             mounts.push_back(spiff);
@@ -244,6 +249,34 @@ public:
         }
         else
         {
+            //for(string s:cons->script)
+            result.push_back(string_format("File %s saved.", name.c_str()));
+            return true;
+        }
+    }
+
+        bool save(string name, list<string> *buff)
+    {
+        result.clear();
+        string _name = current_path + name;
+         File file = current_mount->fs->open(_name.c_str(), FILE_WRITE);
+        if (!file)
+        {
+            result.push_back(string_format("Impossible to save %s.", name.c_str()));
+            return false;
+        }
+        else
+        {
+            
+             list<string> g=*buff;
+            
+            for(string s:g)
+            {
+                file.print(s.c_str());
+                file.print("\n");
+
+            }
+            file.close();
             result.push_back(string_format("File %s saved.", name.c_str()));
             return true;
         }

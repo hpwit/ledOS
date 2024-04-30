@@ -69,13 +69,14 @@ typedef struct
   const char *ESC_RESET = "\u001b[0m";
   const char *DEFAULT_PROMPT = "\u001b[7mLedOS\u001b[1m\u25b6";
   const char *PROGRAM_PROMPT = "";
-  const char *DOWN = "\u001b[100B";
+  const char *DOWN = "\u001b[1000B";
   const char *MOVEUP = "\u001b[0F";
   const char *MOVEDOWN = "\u001b[0E";
   const char *BACK = "\u001b[1D";
   const char *FORWARD = "\u001b[1C";
   const char *LEFT = "\u001b[100D";
   const char *SCROLLUP = "\u001b[0S";
+  const char *SCROLLDOWN = "\u001b[0T";
   const char *SAVE = "\u001b[s";
   const char *RESTORE = "\u001b[u";
   const char *SHOWCURSOR = "\u001b[?25h";
@@ -83,7 +84,7 @@ typedef struct
   const char *HIDECURSOR = "\u001b[?25l";
   const char *BEGIN_OF_LINE = "\u001b[0G";
   const char *ERASE_FROM_CURSOR_TO_EOL = "\u001b[0K";
-  const char *ENABLE_MOUSE= "";//"\u001b[?1000h";
+  const char *ENABLE_MOUSE= "\u001b[?1000h";
   const char *SAVESCREEN ="\u001b[?47h";
   const char *RESTORESCREEN ="\u001b[?47l";
 } _config;
@@ -93,9 +94,10 @@ int width = 300;
 int height = 300;
 typedef struct
 {
-  int x;
-  int y;
-  int internaly;
+  int cursor_x;
+  int cursor_y;
+  int line_x;
+  int line_y;
 } coord;
 class Console;
 typedef struct
@@ -123,7 +125,8 @@ enum ConsoleMode
 {
   keyword,
   edit,
-  execute
+  execute,
+  paste
 };
 
 
@@ -180,8 +183,8 @@ coord getCursorPos()
     sscanf(res.c_str(), "\033[%d;%dR", &y, &x);
   } while (x < 0 or x > 2000 or y < 0 or y > 2000);
 
-  co.x = x;
-  co.y = y;
+  co.cursor_x = x;
+  co.cursor_y = y;
   return co;
 }
 void getConsoleSize()
@@ -191,8 +194,8 @@ void getConsoleSize()
   Serial.printf("%s", config.DOWN);
   Serial.printf("\u001b[10000C");
   coord co = getCursorPos();
-  width = co.x;
-  height = co.y;
+  width = co.cursor_x;
+  height = co.cursor_y;
   Serial.printf("%s", config.RESTORE);
 }
 
@@ -306,7 +309,18 @@ string moveright(int i)
 {
   return string_format("\u001b[%dC", i);
 }
-
+string moveup(int i)
+{
+  return string_format("\u001b[%dA", i);
+}
+string movedown(int i)
+{
+  return string_format("\u001b[%dB", i);
+}
+string locate(int x,int y)
+{
+  return string_format("\u001b[%d;%dH", y,x);
+}
 bool __toBeUpdated;
 
 string default_highlightfunction(string str)

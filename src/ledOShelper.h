@@ -1,18 +1,21 @@
 #include <string>
+#include <list>
+#include "ledOStruct.h"
 
 void editorleft(Console *cons)
 {
-  if (cons->internal_coordinates.x > 1)
+  if (cons->internal_coordinates.line_x > 1)
   {
-    cons->internal_coordinates.x--;
+    cons->internal_coordinates.line_x--;
     _push(config.BACK);
   }
 }
 void editorright(Console *cons)
 {
-  if (cons->internal_coordinates.x <= cons->sentence.size())
+  if (cons->internal_coordinates.line_x <= cons->sentence.size())
   {
-    cons->internal_coordinates.x++;
+    cons->internal_coordinates.line_x++;
+    cons->internal_coordinates.cursor_x++;
     _push(config.FORWARD);
   }
 }
@@ -23,7 +26,8 @@ void promptup(Console *cons)
     _push(moveleft(cons->sentence.size()).c_str());
   cons->sentence = cons->commands.getCommandHistoryUp();
   cons->search_sentence = cons->sentence;
-  cons->internal_coordinates.x = cons->sentence.size() + 1;
+  cons->internal_coordinates.line_x = cons->sentence.size() + 1;
+  cons->internal_coordinates.cursor_x = cons->sentence.size() + 1;
   _push(cons->sentence.c_str());
   _push(config.ERASE_FROM_CURSOR_TO_EOL);
 }
@@ -34,9 +38,122 @@ void promptdown(Console *cons)
     _push(moveleft(cons->sentence.size()).c_str());
   cons->sentence = cons->commands.getCommandHistoryDown();
   cons->search_sentence = cons->sentence;
-  cons->internal_coordinates.x = cons->sentence.size() + 1;
+  cons->internal_coordinates.line_x = cons->sentence.size() + 1;
+  cons->internal_coordinates.cursor_x = cons->sentence.size() + 1;
   _push(cons->sentence.c_str());
   _push(config.ERASE_FROM_CURSOR_TO_EOL);
+}
+
+void editorup(Console *cons)
+{
+  if (cons->internal_coordinates.line_y > 1)
+  {
+    _push(config.HIDECURSOR);
+    list<string>::iterator k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+    if (k == cons->script.end())
+    {
+      cons->script.push_back(cons->sentence);
+    }
+    else
+    {
+      // printf("jjdd");
+      cons->script.erase(k);
+      // printf("jj");
+      k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+      // k++;
+      cons->script.insert(k, cons->sentence);
+      // printf("sdd");
+    }
+if( cons->internal_coordinates.cursor_y>=2)
+{
+    cons->internal_coordinates.line_y--;
+    cons->internal_coordinates.cursor_y--;
+    k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+    cons->sentence = *k;
+    cons->internal_coordinates.cursor_x = (*k).size()+1;
+    cons->internal_coordinates.line_x = (*k).size() + 1;
+    _push(config.MOVEUP);
+    _push(config.BEGIN_OF_LINE);
+    _push(cons->prompt(cons).c_str());
+    //_push(moveright((*k).size()+4));
+    _push(cons->current_hightlight->highLight(cons->sentence).c_str());
+    _push(config.ERASE_FROM_CURSOR_TO_EOL);
+    _push(config.SHOWCURSOR);
+}
+else{
+      cons->internal_coordinates.line_y--;
+    //cons->internal_coordinates.cursor_y--;
+    k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+    cons->sentence = *k;
+    cons->internal_coordinates.cursor_x = (*k).size()+1;
+    cons->internal_coordinates.line_x = (*k).size() + 1;
+    _push(config.SCROLLDOWN);
+    //_push(config.MOVEUP);
+    _push(config.BEGIN_OF_LINE);
+    _push(cons->prompt(cons).c_str());
+    //_push(moveright((*k).size()+4));
+    _push(cons->current_hightlight->highLight(cons->sentence).c_str());
+    _push(config.ERASE_FROM_CURSOR_TO_EOL);
+    _push(config.SHOWCURSOR);
+}
+  }
+}
+
+void editordown(Console *cons)
+{
+  if (cons->internal_coordinates.line_y <=cons->script.size() - 1)
+  {
+    _push(config.HIDECURSOR);
+    list<string>::iterator k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+    if (k == cons->script.end())
+    {
+      cons->script.push_back(cons->sentence);
+    }
+    else
+    {
+      // printf("jjdd");
+      cons->script.erase(k);
+      // printf("jj");
+      k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+      // k++;
+      cons->script.insert(k, cons->sentence);
+      // printf("sdd");
+    }
+if(cons->internal_coordinates.cursor_y<height-1)
+{
+    cons->internal_coordinates.line_y++;
+    cons->internal_coordinates.cursor_y++;
+    k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+    cons->sentence = *k;
+    cons->internal_coordinates.cursor_x = (*k).size()+1;
+    cons->internal_coordinates.line_x = (*k).size() + 1;
+    _push(config.MOVEDOWN);
+    _push(config.BEGIN_OF_LINE);
+    _push(cons->prompt(cons).c_str());
+    //_push(moveright((*k).size()+4));
+    _push(cons->current_hightlight->highLight(cons->sentence).c_str());
+    _push(config.ERASE_FROM_CURSOR_TO_EOL);
+    _push(config.SHOWCURSOR);
+  }
+  else
+  {
+     _push(config.SCROLLUP);
+     _push(config.DELINE);
+        cons->internal_coordinates.line_y++;
+   // cons->internal_coordinates.cursor_y++;
+    k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+    cons->sentence = *k;
+    cons->internal_coordinates.cursor_x = (*k).size()+1;
+    cons->internal_coordinates.line_x = (*k).size() + 1;
+    //_push(config.MOVEDOWN);
+    _push(config.BEGIN_OF_LINE);
+    _push(cons->prompt(cons).c_str());
+    //_push(moveright((*k).size()+4));
+    _push(cons->current_hightlight->highLight(cons->sentence).c_str());
+    _push(config.ERASE_FROM_CURSOR_TO_EOL);
+    _push(config.SHOWCURSOR);
+  }
+  }
 }
 
 void mouseMouvement(Console *cons)
@@ -49,7 +166,7 @@ void mouseMouvement(Console *cons)
   case 96:
     if (cons->cmode == edit)
     {
-      // editorup(cons);
+      editorup(cons);
     }
     else
     {
@@ -75,6 +192,7 @@ void mouseMouvement(Console *cons)
 }
 void extraEscCommand(Console *cons)
 {
+  cons->displayf=true;
   char c1 = Serial.read();
   char c2 = Serial.read();
   if (c1 == 91)
@@ -85,7 +203,7 @@ void extraEscCommand(Console *cons)
     {
       if (cons->cmode == edit)
       {
-        // editorup(cons);
+        editorup(cons);
       }
       else
       {
@@ -97,7 +215,7 @@ void extraEscCommand(Console *cons)
     case 66:
       if (cons->cmode == edit)
       {
-        // editordown(cons);
+        editordown(cons);
       }
       else
       {
@@ -129,10 +247,12 @@ void extraEscCommand(Console *cons)
 static void cls(Console *cons, vector<string> args)
 {
 
-   _push("\u001b[2J\u001b[1000A\u001b[1000D");
-  cons->internal_coordinates.y = 1;
-  cons->internal_coordinates.internaly = 0;
-  cons->internal_coordinates.x = 1;
+  _push("\u001b[2J\u001b[1000A\u001b[1000D");
+  cons->internal_coordinates.cursor_y = 1;
+  cons->internal_coordinates.line_y = 1;
+
+  cons->internal_coordinates.line_x = 1;
+  cons->internal_coordinates.cursor_x = 1;
 }
 
 void cls(Console *cons)
@@ -143,12 +263,12 @@ void cls(Console *cons)
 
 string defaultPrompt(Console *cons)
 {
-  return string_format("%s%sLedOS>", config.ENABLE_MOUSE, cons->defaultformat.c_str(), cons->internal_coordinates.x, cons->internal_coordinates.y);
+  return string_format("%s%sLedOS>", config.ENABLE_MOUSE, cons->defaultformat.c_str());
 }
 
 string editPrompt(Console *cons)
 {
-  return string_format("%s%3d %s ", cons->editprompt.c_str(), cons->internal_coordinates.y, cons->editcontent.c_str());
+  return string_format("%s%3d %s ", cons->editprompt.c_str(), cons->internal_coordinates.line_y, cons->editcontent.c_str());
 }
 
 void ls(Console *cons, vector<string> args)
@@ -287,9 +407,46 @@ void manageTabulation(Console *cons)
     {
       cons->sentence = f;
     }
-    cons->internal_coordinates.x = cons->sentence.size() + 1;
+    cons->internal_coordinates.cursor_x = cons->sentence.size() + 1;
+    cons->internal_coordinates.line_x = cons->sentence.size() + 1;
     _push(f.c_str());
     _push(config.ERASE_FROM_CURSOR_TO_EOL);
+  }
+}
+
+void save(Console *cons, vector<string> args)
+{
+  _push(config.ENDLINE);
+
+  if ((args.size() < 1) && (cons->filename.compare("")==0))
+  {
+    _push(termColor.Red);
+    _push("Error: No argument provided");
+    _push(config.ESC_RESET);
+    _push(config.ENDLINE);
+    return;
+  }
+  // string buff;
+  string filename=cons->filename;
+  // cons->script.clear();
+  if(args.size()>0)
+  {
+    filename=args[0];
+   
+  }
+
+  bool er = fileSystem.save(filename, &cons->script);
+  if (!er)
+  {
+    printf("%s", termColor.Red);
+    printf("%s", fileSystem.result.back().c_str());
+    printf("%s\r\n", config.ESC_RESET);
+  }
+  else
+  {
+    cons->filename = filename;
+    cons->setHighlight(filename);
+    display();
   }
 }
 
@@ -314,23 +471,32 @@ void load(Console *cons, vector<string> args)
   }
   else
   {
+    cons->filename = args[0];
+    cons->setHighlight(args[0]);
     display();
   }
 }
 
+void clear(Console *cons, vector<string> args)
+{
+  cons->script.clear();
+  cons->filename = "";
+  cons->setHighlight("");
+  _push(config.ENDLINE);
+}
 void type(Console *cons, vector<string> args)
 {
   _push(config.ENDLINE);
   _push(termColor.Cyan);
-   if(cons->current_hightlight->init!=NULL )
-     cons->current_hightlight->init();
+  if (cons->current_hightlight->init != NULL)
+    cons->current_hightlight->init();
   if (args.size() < 1)
   {
     for (string j : cons->script)
     {
-     //Òcons->current_hightlight->highLight(sentence)
-     if(cons->current_hightlight->newLine!=NULL )
-     cons->current_hightlight->newLine();
+      // Òcons->current_hightlight->highLight(sentence)
+      if (cons->current_hightlight->newLine != NULL)
+        cons->current_hightlight->newLine();
       _push(cons->current_hightlight->highLight(j).c_str());
       _push(config.ENDLINE);
     }
@@ -346,8 +512,8 @@ void type(Console *cons, vector<string> args)
 
     for (string j : cons->script)
     {
-           if(cons->current_hightlight->newLine!=NULL )
-     cons->current_hightlight->newLine();
+      if (cons->current_hightlight->newLine != NULL)
+        cons->current_hightlight->newLine();
       _push(cons->current_hightlight->highLight(j).c_str());
       _push(config.ENDLINE);
     }
@@ -357,20 +523,40 @@ void type(Console *cons, vector<string> args)
 
 void exitProgMode(Console *cons)
 {
-  if (cons->cmode == edit)
+  if (cons->cmode == edit or cons->cmode==paste)
   {
 
-    if (cons->internal_coordinates.y > cons->script.size())
+    // if (cons->internal_coordinates.line_y <= cons->script.size())
+    //{
+    if (cons->sentence.size() > 0)
     {
-      if (cons->sentence.size() > 0)
+      list<string>::iterator k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+      if (k == cons->script.end())
+      {
         cons->script.push_back(cons->sentence);
-      ;
+      }
+      else
+      {
+        cons->script.erase(k);
+        // printf("jj");
+        k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+        if(k==cons->script.end())
+        {
+          cons->script.push_back(cons->sentence);
+        }
+else
+        {
+          cons->script.insert(k, cons->sentence);
+        }
+      }
+      // }
+
       cons->sentence = "";
       // cons->gotoline();
     }
     else
     {
-      //cons->script[cons->internal_coordinates.y - 1] = cons->sentence;
+      // cons->script[cons->internal_coordinates.y - 1] = cons->sentence;
       cons->sentence = "";
     }
     cons->cmode = keyword;
@@ -381,16 +567,17 @@ void exitProgMode(Console *cons)
     Serial.printf("%s",termColor.Magenta);
     Serial.printf("Exiting edit mode to re enter Ctrl+p");
     */
-   // cls(cons);
+    // cls(cons);
     cons->displayf = false;
     // cons->gotoline();
     // Serial.printf("%s",config.ESC_RESET);
-   //_push(cons->prompt(cons).c_str());
+    //_push(cons->prompt(cons).c_str());
     // cons->gotoline();
   }
 }
 void enterProgMode(Console *cons)
 {
+  // getConsoleSize();
   if (cons->cmode == keyword)
   {
     _push(config.SAVESCREEN);
@@ -402,37 +589,77 @@ void enterProgMode(Console *cons)
     cons->sentence = "";
     cons->currentformat = cons->editcontent;
     getConsoleSize();
+    cons->height = height;
+    cons->width = width;
+    cons->internal_coordinates.cursor_y = 1;
+    cons->internal_coordinates.line_y = 1;
+    cons->internal_coordinates.cursor_x = 1;
+    cons->internal_coordinates.line_x = 1;
+    cons->setHighlight(cons->filename);
     cls(cons);
     cons->displayf = true;
-    if(cons->current_hightlight->init)
+    if (cons->current_hightlight->init)
       cons->current_hightlight->init();
-   // _list(cons, 1, cons->height - 1);
-    
-    if (cons->script.size() < cons->height - 1)
+    // _list(cons, 1, cons->height - 1);
+    if (cons->script.size() == 0)
     {
-      _push(cons->prompt(cons).c_str());
+      if (cons->script.size() < cons->height - 1)
+      {
+        _push(cons->prompt(cons).c_str());
+
+      }
+    }
+    else
+    {
+      cons->_list();
     }
   }
   else
   {
-    _push(config.RESTORESCREEN);
+    
     exitProgMode(cons);
+    _push(config.RESTORESCREEN);
+  }
+}
+void modePaste(Console *cons)
+{
+  cons->displayf=true;
+  if(cons->cmode==edit)
+  {
+    cons->cmode=paste;
+       _push(config.SAVE);
+   _push(config.HIDECURSOR);
+   _push(config.DOWN);
+   _push(config.LEFT);
+   _push(config.DELINE);
+   _push("PASTE MODE ACTIVATED");
+        _push(config.RESTORE);
+    _push(config.SHOWCURSOR);
+
+  }
+  else if(cons->cmode==paste)
+  {
+    //cls(cons);
+   cons->cmode=keyword;
+   
+    enterProgMode(cons);
+   
   }
 }
 
 void initEscCommands(Console *cons)
 {
-   cons->addEscCommand(16, enterProgMode);
+  cons->addEscCommand(5, enterProgMode);
   cons->addEscCommand(27, extraEscCommand);
-  // cons->addEscCommand(15, test);
+ cons->addEscCommand(16, modePaste);
   // cons->addEscCommand(5, scrollup);
   // cons->addEscCommand(18, compilerun);
   // cons->addEscCommand(22, switchfooter);
   cons->addKeywordCommand("ls", ls);
   cons->addKeywordCommand("cls", cls);
   cons->addKeywordCommand("load", load);
+  cons->addKeywordCommand("save", save);
   cons->addKeywordCommand("type", type);
+  cons->addKeywordCommand("clear", clear);
   //  cons->addEscCommand(27,top);
 }
-
-
