@@ -44,6 +44,7 @@ void promptdown(Console *cons)
   _push(config.ERASE_FROM_CURSOR_TO_EOL);
 }
 
+
 void editorup(Console *cons)
 {
   if (cons->internal_coordinates.line_y > 1)
@@ -161,9 +162,14 @@ void mouseMouvement(Console *cons)
   char c1 = Serial.read();
   char c2 = Serial.read();
   char c3 = Serial.read();
+  //we empty the buffer
+  while(Serial.available()>0)
+  {
+    char f=Serial.read();
+  }
   switch (c1)
   {
-  case 96:
+  case 97:
     if (cons->cmode == edit)
     {
       editorup(cons);
@@ -174,10 +180,10 @@ void mouseMouvement(Console *cons)
       promptup(cons);
     }
     break;
-  case 97:
+  case 96:
     if (cons->cmode == edit)
     {
-      // editorup(cons);
+     editordown(cons);
     }
     else
     {
@@ -185,8 +191,39 @@ void mouseMouvement(Console *cons)
       promptdown(cons);
     }
     break;
+case 35:
+//printf("click in %d %d\r\n",c2-32,c3-32);
+if(cons->cmode==edit)
+{
+  int newx=c2-32;
+  int newy=c3-32;
+if(newx<=5)
+ return;
 
+  if(newy<cons->height)
+  {
+  //internal_coordinates.cursor_y = savcy;
+  //internal_coordinates.line_y = savly;
+    int newline =cons->internal_coordinates.line_y -cons->internal_coordinates.cursor_y+newy;
+    if(newline >= cons->script.size())
+     return;
+    cons->internal_coordinates.line_y=newline;
+    cons->internal_coordinates.cursor_y=newy;
+    list<string>::iterator k =cons->getLineIterator(cons->internal_coordinates.line_y-1);
+    cons->sentence=(*k);
+    if(newx-5> (*k).size())
+    {
+      newx=(*k).size()+6;
+    }
+    cons->internal_coordinates.line_x=newx-5;
+    cons->internal_coordinates.cursor_x=newx-5;
+    _push(locate(newx,newy).c_str());
+
+  }
+}
+break;
   default:
+  //printf("%c %c %c\r\n",c1,c2,c3);
     break;
   }
 }

@@ -420,7 +420,12 @@ public:
             }
             else if (cmode == edit)
             {
-              addCharacterEditor(c);
+              //ok it's ugly but for now it's ok
+              addCharacterEditor(' ');
+              addCharacterEditor(' ');
+              addCharacterEditor(' ');
+              addCharacterEditor(' ');
+              addCharacterEditor(' ');
             }
             else if (cmode == paste)
             {
