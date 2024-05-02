@@ -1,15 +1,42 @@
 #pragma once
-#ifndef __ASM_STRING
-#define __ASM_STRING
 #include <stdio.h>
-using namespace std; 
 #include <string>
 #include <stdlib.h>
 #include <memory>
 #include <vector>
+using namespace std; 
+
+
+
+string leadSpace(string s)
+{
+  if(s.size()<1)
+  {
+    return "";
+  }
+  int i=0;
+  string res="";
+  char c=s[i];
+  while(c==' ' and i<s.size())
+  {
+    i++;
+    c=s[i];
+    res+=" ";
+  }
+  return res;
+}
+
+
+#ifndef __ASM_STRING
+#define __ASM_STRING
+
+
+
 //#include <iostream>
 //#include <functional>
-#include <Arduino.h>
+
+
+
 
 vector<string> split(string s, string delimiter)
  {

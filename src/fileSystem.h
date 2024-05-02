@@ -241,6 +241,11 @@ void init()
     bool save(string name, string *buff)
     {
         result.clear();
+                if (name.compare("")==0)
+        {
+            result.push_back(string_format("Impossible to save %s.", name.c_str()));
+            return false;
+        }
         string _name = current_path + name;
         if (!current_mount->fs->open(_name.c_str()))
         {
@@ -258,6 +263,11 @@ void init()
         bool save(string name, list<string> *buff)
     {
         result.clear();
+        if (name.compare("")==0)
+        {
+            result.push_back(string_format("Impossible to save %s.", name.c_str()));
+            return false;
+        }
         string _name = current_path + name;
          File file = current_mount->fs->open(_name.c_str(), FILE_WRITE);
         if (!file)

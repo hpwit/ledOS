@@ -41,6 +41,7 @@ public:
   string filename = "";
   CommandHistory commands;
   CommandHistory searchContent;
+  bool scriptModified=false;
   bool toBeUpdated = true;
 
   int index_sentence;
@@ -186,10 +187,11 @@ public:
     Serial.printf(config.HIDECURSOR);
     Serial.printf(config.DOWN);
     Serial.printf(config.LEFT);
+    
     Serial.printf("%s\r", footerformat.c_str());
     // Serial.print("\u001b[0K");
 
-    Serial.printf("%sPos x:%3d y:%3d width:%d  height:%d curpos:%d,%d script size:%d  filename: %s", footerformat.c_str(), internal_coordinates.line_x, internal_coordinates.line_y, width, height, internal_coordinates.cursor_x, internal_coordinates.cursor_y, script.size(), filename.c_str());
+    Serial.printf("%sPos %d,%d width:%d  height:%d curpos:%d,%d script size:%d  filename:%s%s", footerformat.c_str(), internal_coordinates.line_x, internal_coordinates.line_y, width, height, internal_coordinates.cursor_x, internal_coordinates.cursor_y, script.size(),scriptModified ? "*":"" ,filename.c_str());
     Serial.print("\u001b[0K");
     Serial.printf("\u001b[%dC", width);
     Serial.printf("\u001b[%dD", 11);
@@ -352,6 +354,7 @@ public:
             {
               if (internal_coordinates.line_x > 1)
               {
+                scriptModified=true;
                 if (internal_coordinates.line_x > sentence.size())
                 {
                   sentence = sentence.substr(0, sentence.length() - 1);
@@ -421,14 +424,21 @@ public:
             else if (cmode == edit)
             {
               //ok it's ugly but for now it's ok
-              addCharacterEditor(' ');
-              addCharacterEditor(' ');
-              addCharacterEditor(' ');
-              addCharacterEditor(' ');
-              addCharacterEditor(' ');
+              scriptModified=true;
+              //addCharacterEditor(' ');
+              //addCharacterEditor(' ');
+              //addCharacterEditor(' ');
+              //addCharacterEditor(' ');
+              //addCharacterEditor(' ');
+              addStringEditor("     ");
+              _push(moveright(4).c_str());
+                            internal_coordinates.cursor_x+=4;
+              internal_coordinates.line_x+=4;
+
             }
             else if (cmode == paste)
             {
+               scriptModified=true;
               sentence += c;
             }
             break;
@@ -446,20 +456,153 @@ public:
             }
             else if (cmode == edit)
             {
+              scriptModified=true;
               addCharacterEditor(c);
             }
             else if (cmode == paste)
             {
+               scriptModified=true;
               sentence += c;
               Serial.write(c);
             }
 
             break;
+          case '(':
+          if(cmode==keyword)
+          {
+              sentence += c;
+              search_sentence+=c;
+              Serial.write(c);
+              internal_coordinates.cursor_x++;
+              internal_coordinates.line_x++;
+          }
+          else if(cmode==edit)
+          {
+            scriptModified=true;
+            addStringEditor("()");
+          }
+           else if (cmode == paste)
+            {
+               scriptModified=true;
+              sentence += c;
+              Serial.write(c);
+            }
+          break;
+           case '[':
+          if(cmode==keyword)
+          {
+              sentence += c;
+              search_sentence+=c;
+              Serial.write(c);
+              internal_coordinates.cursor_x++;
+              internal_coordinates.line_x++;
+          }
+          else if(cmode==edit)
+          {
+             scriptModified=true;
+            addStringEditor("[]");
+          }
+           else if (cmode == paste)
+            {
+               scriptModified=true;
+              sentence += c;
+              Serial.write(c);
+            }
+          break;
+        case '{':
+          if(cmode==keyword)
+          {
+              sentence += c;
+              search_sentence+=c;
+              Serial.write(c);
+              internal_coordinates.cursor_x++;
+              internal_coordinates.line_x++;
+          }
+          else if(cmode==edit)
+          {
+             scriptModified=true;
+            string left=sentence+"{";
+            string right=leadSpace(left)+"   ";
+            list<string>::iterator k = getLineIterator(internal_coordinates.line_y - 1);
+              if (k == script.end())
+              {
+                script.push_back(left);
+              }
+              else
+              {
+                // printf("jjdd");
+                script.erase(k);
+                // printf("jj");
+                k = getLineIterator(internal_coordinates.line_y - 1);
+                // k++;
+                script.insert(k, left);
+                // printf("sdd");
+              }
+              displayline(internal_coordinates.line_y - 1);
+              k = getLineIterator(internal_coordinates.line_y);
+               if (k == script.end())
+              {
+                script.push_back(right);
+              }
+              else
+              {
+                // printf("jjdd");
+                // k++;
+                script.insert(k, right);
+                // printf("sdd");
+              }
+              sentence = right;
+               k = getLineIterator(internal_coordinates.line_y+1);
+                if (k == script.end())
+              {
+                script.push_back(leadSpace(left)+"}");
+              }
+              else
+              {
+                // k++;
+                script.insert(k, leadSpace(left)+"}");
+                // printf("sdd");
+              }
+                              _push(config.HIDECURSOR);
+                _push(config.MOVEDOWN);
+                _push(config.BEGIN_OF_LINE);
+                internal_coordinates.cursor_y++;
+                internal_coordinates.line_y++;
+                int savcy = internal_coordinates.cursor_y;
+                int savly = internal_coordinates.line_y;
+              //  _push(prompt(this).c_str());
+               // _push(config.ERASE_FROM_CURSOR_TO_EOL);
+               // _push(config.SAVE);
+               // _push(config.MOVEDOWN);
+                _push(config.BEGIN_OF_LINE);
+                // _push(config.ENDLINE);
 
+               // internal_coordinates.cursor_y++;
+               // internal_coordinates.line_y++;
+                _list();
+                sentence = right;
+                internal_coordinates.cursor_x = right.size()+1;
+                internal_coordinates.line_x =right.size()+ 1;
+
+                internal_coordinates.cursor_y = savcy;
+                internal_coordinates.line_y = savly;
+              //displayline(internal_coordinates.line_y - 1);
+              _push(locate(5 + internal_coordinates.line_x, internal_coordinates.cursor_y).c_str());
+              _push(config.SHOWCURSOR);
+           
+          }
+           else if (cmode == paste)
+            {
+               scriptModified=true;
+              sentence += c;
+              Serial.write(c);
+            }
+          break;
           case '\r':
           {
             if (cmode == paste)
             {
+               scriptModified=true;
               script.push_back(sentence);
               sentence = "";
               _push(config.ENDLINE);
@@ -516,6 +659,7 @@ public:
             }
             else if (cmode == edit)
             {
+               scriptModified=true;
               string left = sentence.substr(0, internal_coordinates.line_x - 1);
               string right = sentence.substr(internal_coordinates.line_x - 1, sentence.size());
               list<string>::iterator k = getLineIterator(internal_coordinates.line_y - 1);
@@ -535,9 +679,14 @@ public:
               }
               displayline(internal_coordinates.line_y - 1);
               k = getLineIterator(internal_coordinates.line_y);
+              //printf("%s :%d",left.c_str(),leadSpace(left).size());
+              right=leadSpace(left)+right;
               if (k != script.end())
               {
                 script.insert(k, right);
+              }
+              else{
+                script.push_back(right);
               }
               sentence = right;
               if (current_hightlight->newLine)
@@ -555,25 +704,26 @@ public:
                 _push(prompt(this).c_str());
                 _push(config.ERASE_FROM_CURSOR_TO_EOL);
                 _push(config.SAVE);
-                _push(config.MOVEDOWN);
-                _push(config.BEGIN_OF_LINE);
+                //_push(config.MOVEDOWN);
+                //_push(config.BEGIN_OF_LINE);
                 // _push(config.ENDLINE);
 
-                internal_coordinates.cursor_y++;
-                internal_coordinates.line_y++;
+                //internal_coordinates.cursor_y++;
+                //internal_coordinates.line_y++;
                 _list();
                 sentence = right;
-                internal_coordinates.cursor_x = 1;
-                internal_coordinates.line_x = 1;
+                internal_coordinates.cursor_x = leadSpace(left).size()+1;
+                internal_coordinates.line_x =leadSpace(left).size()+ 1;
 
                 internal_coordinates.cursor_y = savcy;
                 internal_coordinates.line_y = savly;
-                _push(locate(5 + internal_coordinates.line_x, internal_coordinates.cursor_y).c_str());
-                _push(config.BEGIN_OF_LINE);
-                _push(prompt(this).c_str());
-                _push(current_hightlight->highLight(sentence).c_str());
-                _push(locate(5 + internal_coordinates.line_x, internal_coordinates.cursor_y).c_str());
-                _push(config.SHOWCURSOR);
+                _push(config.RESTORE);
+               // _push(locate(5 + internal_coordinates.line_x, internal_coordinates.cursor_y).c_str());
+               // _push(config.BEGIN_OF_LINE);
+               // _push(prompt(this).c_str());
+               // _push(current_hightlight->highLight(sentence).c_str());
+               // _push(locate(5 + internal_coordinates.line_x, internal_coordinates.cursor_y).c_str());
+               // _push(config.SHOWCURSOR);
               }
               else
               {
@@ -587,25 +737,27 @@ public:
                 internal_coordinates.line_y++;
                 int savcy = internal_coordinates.cursor_y;
                 int savly = internal_coordinates.line_y;
-                _push(prompt(this).c_str());
-                _push(config.ERASE_FROM_CURSOR_TO_EOL);
+               // _push(prompt(this).c_str());
+               // _push(config.ERASE_FROM_CURSOR_TO_EOL);
 
                 _push(config.SAVE);
-                _push(config.MOVEDOWN);
+               // _push(config.MOVEDOWN);
                 _push(config.BEGIN_OF_LINE);
-                internal_coordinates.cursor_y++;
-                internal_coordinates.line_y++;
+                //internal_coordinates.cursor_y++;
+               // internal_coordinates.line_y++;
                 _list();
                 sentence = right;
-                internal_coordinates.cursor_x = 1;
-                internal_coordinates.line_x = 1;
+                internal_coordinates.cursor_x = leadSpace(left).size()+1;
+                internal_coordinates.line_x = leadSpace(left).size()+1;
                 internal_coordinates.cursor_y = savcy;
                 internal_coordinates.line_y = savly;
-                _push(config.RESTORE);
-                _push(locate(5 + internal_coordinates.line_x, internal_coordinates.cursor_y).c_str());
-                _push(config.SHOWCURSOR);
+               //_push(config.RESTORE);
+               /// _push(locate(5 + internal_coordinates.line_x, internal_coordinates.cursor_y).c_str());
+               // _push(config.SHOWCURSOR);
               }
-              displayline(internal_coordinates.line_y - 1);
+             // displayline(internal_coordinates.line_y - 1);
+              _push(locate(5 + internal_coordinates.line_x, internal_coordinates.cursor_y).c_str());
+              _push(config.SHOWCURSOR);
             }
           }
           break;
@@ -622,11 +774,12 @@ public:
             }
             else if (cmode == edit)
             {
-
+               scriptModified=true;
               addCharacterEditor(c);
             }
             else if (cmode == paste)
             {
+               scriptModified=true;
               sentence += c;
               Serial.write(c);
             }
@@ -680,6 +833,28 @@ public:
     internal_coordinates.cursor_x++;
     internal_coordinates.line_x++;
   }
+  void addStringEditor(string c)
+  {
+    _push(config.HIDECURSOR);
+    _push(config.SAVE);
+    _push(config.BEGIN_OF_LINE);
+    _push(moveright(5).c_str());
+    if (sentence.size() >= 1)
+    {
+      sentence = sentence.substr(0, internal_coordinates.line_x - 1) + c + sentence.substr(internal_coordinates.line_x - 1, sentence.size());
+    }
+    else
+      sentence = sentence+c;
+    _push(current_hightlight->highLight(sentence).c_str());
+    // _push(sentence.c_str());
+    _push(config.RESTORE);
+    _push(config.FORWARD);
+    _push(config.SHOWCURSOR);
+
+    internal_coordinates.cursor_x++;
+    internal_coordinates.line_x++;
+  }
+
 
   void pushToConsole(string str)
   {

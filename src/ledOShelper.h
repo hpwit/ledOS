@@ -396,6 +396,8 @@ void rm(Console *cons, vector<string> args)
 
 void manageTabulation(Console *cons)
 {
+  if (cons->sentence.size()<1)
+  return;
   vector<string> j;
   string search_sentence;
   j = split(cons->sentence, " ");
@@ -455,7 +457,7 @@ void save(Console *cons, vector<string> args)
 {
   _push(config.ENDLINE);
 
-  if ((args.size() < 1) && (cons->filename.compare("")==0))
+  if ((args.size() < 1) && (cons->filename.compare("")==0) && args[0].size()>0)
   {
     _push(termColor.Red);
     _push("Error: No argument provided");
@@ -482,6 +484,7 @@ void save(Console *cons, vector<string> args)
   else
   {
     cons->filename = filename;
+     cons->scriptModified=false;
     cons->setHighlight(filename);
     display();
   }
@@ -500,6 +503,7 @@ void load(Console *cons, vector<string> args)
   // string buff;
   cons->script.clear();
   bool er = fileSystem.load(args[0], &cons->script);
+ 
   if (!er)
   {
     printf("%s", termColor.Red);
@@ -508,6 +512,7 @@ void load(Console *cons, vector<string> args)
   }
   else
   {
+     cons->scriptModified=false;
     cons->filename = args[0];
     cons->setHighlight(args[0]);
     display();
@@ -520,6 +525,7 @@ void clear(Console *cons, vector<string> args)
   cons->filename = "";
   cons->setHighlight("");
   _push(config.ENDLINE);
+   cons->scriptModified=false;
 }
 void type(Console *cons, vector<string> args)
 {
@@ -658,6 +664,37 @@ void enterProgMode(Console *cons)
     _push(config.RESTORESCREEN);
   }
 }
+
+
+void saveFromEditor(Console *cons)
+{
+  if(cons->filename.size()<1)
+  {
+    cons->pushToConsole(string_format("%s%s%s",termColor.Red,"Error: No argument provided",config.ESC_RESET));
+   // vTaskDelay(600);
+  }
+   else if(cons->script.size()<1)
+  {
+    cons->pushToConsole(string_format("%s%s%s",termColor.Red,"Empty file",config.ESC_RESET));
+    //vTaskDelay(600);
+  }
+  else
+  {
+    bool er = fileSystem.save(cons->filename, &cons->script);
+    if (!er)
+  {
+        cons->pushToConsole(string_format("%s%s%s",termColor.Red,"Impossible to save file",config.ESC_RESET));
+    
+  }
+  else{
+    cons->scriptModified=false;
+     cons->pushToConsole("File saved");
+  }
+  }
+  vTaskDelay(600);
+  cons->pushToConsole("");
+}
+
 void modePaste(Console *cons)
 {
   cons->displayf=true;
@@ -689,6 +726,7 @@ void initEscCommands(Console *cons)
   cons->addEscCommand(5, enterProgMode);
   cons->addEscCommand(27, extraEscCommand);
  cons->addEscCommand(16, modePaste);
+  cons->addEscCommand(19, saveFromEditor);
   // cons->addEscCommand(5, scrollup);
   // cons->addEscCommand(18, compilerun);
   // cons->addEscCommand(22, switchfooter);
