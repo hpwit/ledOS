@@ -85,8 +85,9 @@ typedef struct
   const char *BEGIN_OF_LINE = "\u001b[0G";
   const char *ERASE_FROM_CURSOR_TO_EOL = "\u001b[0K";
   const char *ENABLE_MOUSE= "\u001b[?1000h";
-  const char *SAVESCREEN ="\u001b[?47h";
-  const char *RESTORESCREEN ="\u001b[?47l";
+  const char *SAVESCREEN ="\u001b[?1046h\u001b[?1047h";
+  const char *RESTORESCREEN ="\u001b[?1047l";
+  const char *HIDESCROLLBAR ="\u001b[?30l";
 } _config;
 _config config;
 

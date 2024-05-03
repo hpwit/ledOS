@@ -204,6 +204,7 @@ void init()
                 tmp += c;
                 }
             }
+            file.close();
             result.push_back(string_format("File %s loaded.", name.c_str()));
             return true;
         }    

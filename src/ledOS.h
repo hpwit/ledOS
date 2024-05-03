@@ -294,6 +294,7 @@ public:
   }
   void run()
   {
+    _push(config.HIDESCROLLBAR);
     char c;
     // getConsoleSize();
     printf("welcome\r\n");

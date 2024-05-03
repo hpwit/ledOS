@@ -610,11 +610,13 @@ else
     Serial.printf("%s",termColor.Magenta);
     Serial.printf("Exiting edit mode to re enter Ctrl+p");
     */
-    // cls(cons);
+    
+     cls(cons);
     cons->displayf = false;
     // cons->gotoline();
     // Serial.printf("%s",config.ESC_RESET);
-    //_push(cons->prompt(cons).c_str());
+    
+    _push(cons->prompt(cons).c_str());
     // cons->gotoline();
   }
 }
