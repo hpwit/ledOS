@@ -87,7 +87,7 @@ typedef struct
   const char *ENABLE_MOUSE= "\u001b[?1000h";
   const char *SAVESCREEN ="\u001b[?1046h\u001b[?1047h";
   const char *RESTORESCREEN ="\u001b[?1047l";
-  const char *HIDESCROLLBAR ="\u001b[?30l";
+  const char *HIDESCROLLBAR ="";//\u001b[?30l";
 } _config;
 _config config;
 

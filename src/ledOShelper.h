@@ -682,6 +682,10 @@ void saveFromEditor(Console *cons)
   }
   else
   {
+        if(cons->cmode==edit)
+    {
+        cons->storeCurrentLine();
+    }
     bool er = fileSystem.save(cons->filename, &cons->script);
     if (!er)
   {
