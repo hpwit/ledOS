@@ -334,8 +334,8 @@ public:
                 {
                   sentence = sentence.substr(0, sentence.length() - 1);
                   internal_coordinates.line_x--;
-                  Serial.print("\u001b[1D");
-                  Serial.printf("\u001b[0K");
+                 _push("\u001b[1D");
+                 _push("\u001b[0K");
                 }
                 else
                 {
@@ -344,7 +344,7 @@ public:
 
                   internal_coordinates.line_x--;
 
-                  Serial.printf("\u001b[1D");
+                  _push("\u001b[1D");
                   _push(config.SAVE);
                   Serial.printf("\u001b[0K%s", save.c_str());
                   _push(config.RESTORE);
@@ -368,7 +368,7 @@ public:
                   internal_coordinates.line_x--;
                 }
                 _push(config.HIDECURSOR);
-                Serial.printf("\u001b[1D");
+                _push("\u001b[1D");
                 _push(config.SAVE);
                 _push(config.BEGIN_OF_LINE);
                 _push(prompt(this).c_str());
@@ -765,13 +765,32 @@ public:
           default:
             if (cmode == keyword)
             {
-              sentence += c;
-              search_sentence += c;
-              __toBeUpdated = true;
-              Serial.printf("%c", c);
 
-              internal_coordinates.cursor_x++;
-              internal_coordinates.line_x++;
+                _push(config.HIDECURSOR);
+    _push(config.SAVE);
+    _push(config.BEGIN_OF_LINE);
+    _push(moveright(6).c_str());
+    if (sentence.size() >= 1)
+    {
+      sentence = sentence.substr(0, internal_coordinates.line_x - 1) + c + sentence.substr(internal_coordinates.line_x - 1, sentence.size());
+    }
+    else
+      sentence += c;
+    _push(sentence.c_str());
+    // _push(sentence.c_str());
+    _push(config.RESTORE);
+    _push(config.FORWARD);
+    _push(config.SHOWCURSOR);
+
+    internal_coordinates.cursor_x++;
+    internal_coordinates.line_x++;
+             // sentence += c;
+              search_sentence = sentence;
+              __toBeUpdated = true;
+            //  Serial.printf("%c", c);
+
+             // internal_coordinates.cursor_x++;
+              //internal_coordinates.line_x++;
             }
             else if (cmode == edit)
             {
