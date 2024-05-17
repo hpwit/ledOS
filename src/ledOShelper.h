@@ -672,12 +672,12 @@ void saveFromEditor(Console *cons)
 {
   if(cons->filename.size()<1)
   {
-    cons->pushToConsole(string_format("%s%s%s",termColor.Red,"Error: No argument provided",config.ESC_RESET));
+    cons->pushToConsole(string_format("%s%s%s",termColor.Red,"Error: No argument provided",config.ESC_RESET),true);
    // vTaskDelay(600);
   }
    else if(cons->script.size()<1)
   {
-    cons->pushToConsole(string_format("%s%s%s",termColor.Red,"Empty file",config.ESC_RESET));
+    cons->pushToConsole(string_format("%s%s%s",termColor.Red,"Empty file",config.ESC_RESET),true);
     //vTaskDelay(600);
   }
   else
@@ -689,16 +689,16 @@ void saveFromEditor(Console *cons)
     bool er = fileSystem.save(cons->filename, &cons->script);
     if (!er)
   {
-        cons->pushToConsole(string_format("%s%s%s",termColor.Red,"Impossible to save file",config.ESC_RESET));
+        cons->pushToConsole(string_format("%s%s%s",termColor.Red,"Impossible to save file",config.ESC_RESET),true);
     
   }
   else{
     cons->scriptModified=false;
-     cons->pushToConsole("File saved");
+     cons->pushToConsole("File saved",true);
   }
   }
   vTaskDelay(600);
-  cons->pushToConsole("");
+  cons->pushToConsole("",true);
 }
 
 void modePaste(Console *cons)
@@ -727,20 +727,63 @@ void modePaste(Console *cons)
   }
 }
 
+void echo(Console *cons, vector<string> args)
+{
+  if(cons->__echo)
+  {
+    cons->__echo=false;
+    cons->pushToConsole("Echo off",true);
+  }
+  else{
+    cons->__echo=true;
+    cons->pushToConsole("Echo on",true);
+  }
+}
+
+void displayhelp(Console *cons,vector<string> args)
+{
+//_push("lkjkljklj\r\n");
+
+    for (int i = 0; i < cons->keyword_commands.size(); i++)
+    {
+      Console_keyword_command keyword_command= cons->keyword_commands[i];
+
+      if(keyword_command.description.compare("")!=0)
+      {
+      _push(string_format("%s%s%s\t: %s",termColor.Cyan ,keyword_command.keyword.c_str() ,cons->defaultformat.c_str(),keyword_command.description.c_str()).c_str());
+      _push(config.ENDLINE);
+      }
+    }
+ _push(config.ENDLINE);
+    for (Console_esc_command esc_command:cons->esc_commands)
+    {
+      //Console_esc_command esc_command = cons->esc_commands[i];
+        
+      if(esc_command.description.compare("")!=0)
+      {
+         //_push(string_format("CTRL + %d",esc_command.esc_code+64));
+    _push(string_format("%sCTRL + %c%s : %s",termColor.Cyan, esc_command.esc_code+'a'-1,cons->defaultformat.c_str(),esc_command.description.c_str()).c_str());
+      _push(config.ENDLINE);
+      }
+    }
+
+}
 void initEscCommands(Console *cons)
 {
-  cons->addEscCommand(5, enterProgMode);
-  cons->addEscCommand(27, extraEscCommand);
- cons->addEscCommand(16, modePaste);
-  cons->addEscCommand(19, saveFromEditor);
+  cons->addEscCommand(5, enterProgMode,"Toggle Between the editor and the console");
+  cons->addEscCommand(27, extraEscCommand,"");
+ cons->addEscCommand(16, modePaste,"Enter mode paste in the editor");
+  cons->addEscCommand(19, saveFromEditor,"Save the current file");
   // cons->addEscCommand(5, scrollup);
   // cons->addEscCommand(18, compilerun);
   // cons->addEscCommand(22, switchfooter);
-  cons->addKeywordCommand("ls", ls);
-  cons->addKeywordCommand("cls", cls);
-  cons->addKeywordCommand("load", load);
-  cons->addKeywordCommand("save", save);
-  cons->addKeywordCommand("type", type);
-  cons->addKeywordCommand("clear", clear);
+  cons->addKeywordCommand("ls", ls,"List the files option -l to have details");
+  cons->addKeywordCommand("cls", cls,"Clear the screen");
+  cons->addKeywordCommand("load", load,"Load a file ex:'load filename'");
+  cons->addKeywordCommand("save", save,"Save a file ex:'save filename' NB: if a current file is open 'save' will suffice ");
+  cons->addKeywordCommand("type", type,"List the content in the editor buffer");
+  cons->addKeywordCommand("clear", clear,"Clear the editor buffer");
+   cons->addKeywordCommand("echo", echo,"Toggle the display of the messages sent via pushToConsole");
+   cons->addKeywordCommand("help", displayhelp,"Display the help");
   //  cons->addEscCommand(27,top);
 }

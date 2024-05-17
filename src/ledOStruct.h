@@ -104,12 +104,14 @@ class Console;
 typedef struct
 {
   uint8_t esc_code;
+  string description;
   void (*command)(Console *cons);
 } Console_esc_command;
 
 typedef struct
 {
   string keyword;
+  string description;
   void (*command)(Console *cons, vector<string> args);
 } Console_keyword_command;
 

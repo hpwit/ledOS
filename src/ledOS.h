@@ -13,6 +13,7 @@ void insertLine(Console *cons);
 void _list(Console *cons, int start, int len);
 void initEscCommands(Console *cons);
 void manageTabulation(Console *cons);
+
 class Console
 {
 public:
@@ -39,6 +40,7 @@ public:
   string footerformat = config.ESC_RESET;
   string currentformat;
   string filename = "";
+  bool __echo=false;
   CommandHistory commands;
   CommandHistory searchContent;
   bool scriptModified=false;
@@ -165,19 +167,21 @@ public:
     }
   }
 
-  void addEscCommand(uint8_t esc_code, void (*command)(Console *cons))
+  void addEscCommand(uint8_t esc_code, void (*command)(Console *cons),string descr)
   {
     Console_esc_command es;
     es.esc_code = esc_code;
     es.command = command;
+    es.description=descr;
     esc_commands.push_back(es);
   }
 
-  void addKeywordCommand(string keyword, void (*command)(Console *cons, vector<string> args))
+  void addKeywordCommand(string keyword, void (*command)(Console *cons, vector<string> args),string descr)
   {
     Console_keyword_command es;
     es.keyword = keyword;
     es.command = command;
+    es.description= descr;
     keyword_commands.push_back(es);
   }
   void displayfooter()
@@ -292,12 +296,13 @@ public:
     // LedOS.addHightLightinf(".sc", formatLine,formatInit,formatNewLine);
     current_hightlight = &highLighting[0];
   }
+  
   void run()
   {
     _push(config.HIDESCROLLBAR);
     char c;
     // getConsoleSize();
-    printf("welcome\r\n");
+    _push("welcome\r\n");
 
     // Serial.printf("%d:%d:%s",width,height,config.DEFAULT_PROMPT);
     _push(prompt(this).c_str());
@@ -318,7 +323,15 @@ public:
       {
         c = Serial.read();
         bool res = analyseEscCommand(c);
-
+        if(res)
+        {
+          /*
+          if(cmode==keyword)
+          {
+            gotoline();
+            _push(prompt(this).c_str());
+          }*/
+        }
         if (res == false)
         {
           displayf ==true;
@@ -636,10 +649,11 @@ public:
                     }
                   }
                 }
+                gotoline();
                 bool res = analyseKeywordCommand(cmd_line[0], args);
                 if (res == false)
                 {
-                  gotoline();
+                  
                   Serial.printf("%sLedOS commande not found: %s", errorformat.c_str(), cmd_line[0].c_str());
                   gotoline();
                 }
@@ -875,13 +889,18 @@ public:
     internal_coordinates.line_x++;
   }
 
-
-  void pushToConsole(string str)
+void pushToConsole(string str,bool force,bool _prompt)
+{
+  if( !force and !__echo)
   {
+    return;
+  }
     if(cmode==keyword)
     {
       _push(str.c_str());
       _push(config.ENDLINE);
+      if(_prompt)
+        _push(prompt(this).c_str());
     }
     else if (cmode ==edit)
     {
@@ -894,6 +913,16 @@ public:
    _push(config.RESTORE);
     _push(config.SHOWCURSOR);
     }
+}
+void pushToConsole(string str,bool force)
+{
+pushToConsole(str,force,false);
+}
+  void pushToConsole(string str)
+  {
+   
+   pushToConsole(str,false,false);
+
   }
 
 
