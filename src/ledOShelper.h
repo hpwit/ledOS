@@ -768,12 +768,73 @@ void displayhelp(Console *cons,vector<string> args)
     }
 
 }
+
+void setStartCopyBlock(Console *cons)
+{
+
+  cons->_endCopyBlock=-1;
+ cons-> _startCopyBlock=cons->internal_coordinates.line_y ;
+
+}
+void setEndCopyBlock(Console *cons)
+{
+   cons-> _endCopyBlock=cons->internal_coordinates.line_y ;
+  if(cons->_startCopyBlock==-1)
+  {
+    cons->_startCopyBlock=cons->_endCopyBlock;
+  }
+
+}
+void CopyBlock(Console *cons)
+{
+  if(cons->_startCopyBlock==-1)
+    return;
+  if(cons->_endCopyBlock==-1)
+    cons->_endCopyBlock=cons->_startCopyBlock;
+ _push(config.HIDECURSOR);
+int _start,_end;
+if(cons->_endCopyBlock>cons->_startCopyBlock)
+{
+  _start=cons->_startCopyBlock;
+  _end=cons->_endCopyBlock;
+}
+else
+{
+  _end=cons->_startCopyBlock;
+  _start=cons->_endCopyBlock;
+}
+  for(int i=_start;i<_end+1;i++)
+  {
+  list<string>::iterator k = cons->getLineIterator(cons->internal_coordinates.line_y- 1);
+              if (k == cons->script.end())
+              {
+                cons->script.push_back(*cons->getLineIterator(i-1));
+              }
+              else
+              {
+                cons->script.insert(k, *cons->getLineIterator(i-1));
+              }
+               cons->displayline(cons->internal_coordinates.line_y - 1);
+               cons->addLine(*cons->getLineIterator(i-1),"");
+               _push(locate(5 + cons->internal_coordinates.line_x, cons->internal_coordinates.cursor_y).c_str());
+
+              // cons->internal_coordinates.line_y++;
+             
+  }
+
+//_push(locate(5 + cons->internal_coordinates.line_x, cons->internal_coordinates.cursor_y).c_str());
+              _push(config.SHOWCURSOR);
+}
+
 void initEscCommands(Console *cons)
 {
   cons->addEscCommand(5, enterProgMode,"Toggle Between the editor and the console");
   cons->addEscCommand(27, extraEscCommand,"");
  cons->addEscCommand(16, modePaste,"Enter mode paste in the editor");
   cons->addEscCommand(19, saveFromEditor,"Save the current file");
+   cons->addEscCommand(2, setStartCopyBlock,"Define start of block block");
+    cons->addEscCommand(4, setEndCopyBlock,"Define end of block block");
+    cons->addEscCommand(3, CopyBlock,"Copy selected Block");
   // cons->addEscCommand(5, scrollup);
   // cons->addEscCommand(18, compilerun);
   // cons->addEscCommand(22, switchfooter);
