@@ -44,7 +44,6 @@ void promptdown(Console *cons)
   _push(config.ERASE_FROM_CURSOR_TO_EOL);
 }
 
-
 void editorup(Console *cons)
 {
   if (cons->internal_coordinates.line_y > 1)
@@ -65,44 +64,45 @@ void editorup(Console *cons)
       cons->script.insert(k, cons->sentence);
       // printf("sdd");
     }
-if( cons->internal_coordinates.cursor_y>=2)
-{
-    cons->internal_coordinates.line_y--;
-    cons->internal_coordinates.cursor_y--;
-    k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
-    cons->sentence = *k;
-    cons->internal_coordinates.cursor_x = (*k).size()+1;
-    cons->internal_coordinates.line_x = (*k).size() + 1;
-    _push(config.MOVEUP);
-    _push(config.BEGIN_OF_LINE);
-    _push(cons->prompt(cons).c_str());
-    //_push(moveright((*k).size()+4));
-    _push(cons->current_hightlight->highLight(cons->sentence).c_str());
-    _push(config.ERASE_FROM_CURSOR_TO_EOL);
-    _push(config.SHOWCURSOR);
-}
-else{
+    if (cons->internal_coordinates.cursor_y >= 2)
+    {
       cons->internal_coordinates.line_y--;
-    //cons->internal_coordinates.cursor_y--;
-    k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
-    cons->sentence = *k;
-    cons->internal_coordinates.cursor_x = (*k).size()+1;
-    cons->internal_coordinates.line_x = (*k).size() + 1;
-    _push(config.SCROLLDOWN);
-    //_push(config.MOVEUP);
-    _push(config.BEGIN_OF_LINE);
-    _push(cons->prompt(cons).c_str());
-    //_push(moveright((*k).size()+4));
-    _push(cons->current_hightlight->highLight(cons->sentence).c_str());
-    _push(config.ERASE_FROM_CURSOR_TO_EOL);
-    _push(config.SHOWCURSOR);
-}
+      cons->internal_coordinates.cursor_y--;
+      k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+      cons->sentence = *k;
+      cons->internal_coordinates.cursor_x = (*k).size() + 1;
+      cons->internal_coordinates.line_x = (*k).size() + 1;
+      _push(config.MOVEUP);
+      _push(config.BEGIN_OF_LINE);
+      _push(cons->prompt(cons).c_str());
+      //_push(moveright((*k).size()+4));
+      _push(cons->current_hightlight->highLight(cons->sentence).c_str());
+      _push(config.ERASE_FROM_CURSOR_TO_EOL);
+      _push(config.SHOWCURSOR);
+    }
+    else
+    {
+      cons->internal_coordinates.line_y--;
+      // cons->internal_coordinates.cursor_y--;
+      k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+      cons->sentence = *k;
+      cons->internal_coordinates.cursor_x = (*k).size() + 1;
+      cons->internal_coordinates.line_x = (*k).size() + 1;
+      _push(config.SCROLLDOWN);
+      //_push(config.MOVEUP);
+      _push(config.BEGIN_OF_LINE);
+      _push(cons->prompt(cons).c_str());
+      //_push(moveright((*k).size()+4));
+      _push(cons->current_hightlight->highLight(cons->sentence).c_str());
+      _push(config.ERASE_FROM_CURSOR_TO_EOL);
+      _push(config.SHOWCURSOR);
+    }
   }
 }
 
 void editordown(Console *cons)
 {
-  if (cons->internal_coordinates.line_y <=cons->script.size() - 1)
+  if (cons->internal_coordinates.line_y <= cons->script.size() - 1)
   {
     _push(config.HIDECURSOR);
     list<string>::iterator k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
@@ -120,40 +120,40 @@ void editordown(Console *cons)
       cons->script.insert(k, cons->sentence);
       // printf("sdd");
     }
-if(cons->internal_coordinates.cursor_y<height-1)
-{
-    cons->internal_coordinates.line_y++;
-    cons->internal_coordinates.cursor_y++;
-    k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
-    cons->sentence = *k;
-    cons->internal_coordinates.cursor_x = (*k).size()+1;
-    cons->internal_coordinates.line_x = (*k).size() + 1;
-    _push(config.MOVEDOWN);
-    _push(config.BEGIN_OF_LINE);
-    _push(cons->prompt(cons).c_str());
-    //_push(moveright((*k).size()+4));
-    _push(cons->current_hightlight->highLight(cons->sentence).c_str());
-    _push(config.ERASE_FROM_CURSOR_TO_EOL);
-    _push(config.SHOWCURSOR);
-  }
-  else
-  {
-     _push(config.SCROLLUP);
-     _push(config.DELINE);
-        cons->internal_coordinates.line_y++;
-   // cons->internal_coordinates.cursor_y++;
-    k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
-    cons->sentence = *k;
-    cons->internal_coordinates.cursor_x = (*k).size()+1;
-    cons->internal_coordinates.line_x = (*k).size() + 1;
-    //_push(config.MOVEDOWN);
-    _push(config.BEGIN_OF_LINE);
-    _push(cons->prompt(cons).c_str());
-    //_push(moveright((*k).size()+4));
-    _push(cons->current_hightlight->highLight(cons->sentence).c_str());
-    _push(config.ERASE_FROM_CURSOR_TO_EOL);
-    _push(config.SHOWCURSOR);
-  }
+    if (cons->internal_coordinates.cursor_y < height - 1)
+    {
+      cons->internal_coordinates.line_y++;
+      cons->internal_coordinates.cursor_y++;
+      k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+      cons->sentence = *k;
+      cons->internal_coordinates.cursor_x = (*k).size() + 1;
+      cons->internal_coordinates.line_x = (*k).size() + 1;
+      _push(config.MOVEDOWN);
+      _push(config.BEGIN_OF_LINE);
+      _push(cons->prompt(cons).c_str());
+      //_push(moveright((*k).size()+4));
+      _push(cons->current_hightlight->highLight(cons->sentence).c_str());
+      _push(config.ERASE_FROM_CURSOR_TO_EOL);
+      _push(config.SHOWCURSOR);
+    }
+    else
+    {
+      _push(config.SCROLLUP);
+      _push(config.DELINE);
+      cons->internal_coordinates.line_y++;
+      // cons->internal_coordinates.cursor_y++;
+      k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+      cons->sentence = *k;
+      cons->internal_coordinates.cursor_x = (*k).size() + 1;
+      cons->internal_coordinates.line_x = (*k).size() + 1;
+      //_push(config.MOVEDOWN);
+      _push(config.BEGIN_OF_LINE);
+      _push(cons->prompt(cons).c_str());
+      //_push(moveright((*k).size()+4));
+      _push(cons->current_hightlight->highLight(cons->sentence).c_str());
+      _push(config.ERASE_FROM_CURSOR_TO_EOL);
+      _push(config.SHOWCURSOR);
+    }
   }
 }
 
@@ -162,10 +162,10 @@ void mouseMouvement(Console *cons)
   char c1 = Serial.read();
   char c2 = Serial.read();
   char c3 = Serial.read();
-  //we empty the buffer
-  while(Serial.available()>0)
+  // we empty the buffer
+  while (Serial.available() > 0)
   {
-    char f=Serial.read();
+    char f = Serial.read();
   }
   switch (c1)
   {
@@ -183,7 +183,7 @@ void mouseMouvement(Console *cons)
   case 96:
     if (cons->cmode == edit)
     {
-     editordown(cons);
+      editordown(cons);
     }
     else
     {
@@ -191,45 +191,44 @@ void mouseMouvement(Console *cons)
       promptdown(cons);
     }
     break;
-case 35:
-//printf("click in %d %d\r\n",c2-32,c3-32);
-if(cons->cmode==edit)
-{
-  int newx=c2-32;
-  int newy=c3-32;
-if(newx<=5)
- return;
-
-  if(newy<cons->height)
-  {
-  //internal_coordinates.cursor_y = savcy;
-  //internal_coordinates.line_y = savly;
-    int newline =cons->internal_coordinates.line_y -cons->internal_coordinates.cursor_y+newy;
-    if(newline >= cons->script.size())
-     return;
-    cons->internal_coordinates.line_y=newline;
-    cons->internal_coordinates.cursor_y=newy;
-    list<string>::iterator k =cons->getLineIterator(cons->internal_coordinates.line_y-1);
-    cons->sentence=(*k);
-    if(newx-5> (*k).size())
+  case 35:
+    // printf("click in %d %d\r\n",c2-32,c3-32);
+    if (cons->cmode == edit)
     {
-      newx=(*k).size()+6;
-    }
-    cons->internal_coordinates.line_x=newx-5;
-    cons->internal_coordinates.cursor_x=newx-5;
-    _push(locate(newx,newy).c_str());
+      int newx = c2 - 32;
+      int newy = c3 - 32;
+      if (newx <= 5)
+        return;
 
-  }
-}
-break;
+      if (newy < cons->height)
+      {
+        // internal_coordinates.cursor_y = savcy;
+        // internal_coordinates.line_y = savly;
+        int newline = cons->internal_coordinates.line_y - cons->internal_coordinates.cursor_y + newy;
+        if (newline >= cons->script.size())
+          return;
+        cons->internal_coordinates.line_y = newline;
+        cons->internal_coordinates.cursor_y = newy;
+        list<string>::iterator k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+        cons->sentence = (*k);
+        if (newx - 5 > (*k).size())
+        {
+          newx = (*k).size() + 6;
+        }
+        cons->internal_coordinates.line_x = newx - 5;
+        cons->internal_coordinates.cursor_x = newx - 5;
+        _push(locate(newx, newy).c_str());
+      }
+    }
+    break;
   default:
-  //printf("%c %c %c\r\n",c1,c2,c3);
+    // printf("%c %c %c\r\n",c1,c2,c3);
     break;
   }
 }
 void extraEscCommand(Console *cons)
 {
-  cons->displayf=true;
+  cons->displayf = true;
   char c1 = Serial.read();
   char c2 = Serial.read();
   if (c1 == 91)
@@ -396,8 +395,8 @@ void rm(Console *cons, vector<string> args)
 
 void manageTabulation(Console *cons)
 {
-  if (cons->sentence.size()<1)
-  return;
+  if (cons->sentence.size() < 1)
+    return;
   vector<string> j;
   string search_sentence;
   j = split(cons->sentence, " ");
@@ -457,7 +456,7 @@ void save(Console *cons, vector<string> args)
 {
   _push(config.ENDLINE);
 
-  if ((args.size() < 1) && (cons->filename.compare("")==0) && args[0].size()>0)
+  if ((args.size() < 1) && (cons->filename.compare("") == 0) && args[0].size() > 0)
   {
     _push(termColor.Red);
     _push("Error: No argument provided");
@@ -466,12 +465,11 @@ void save(Console *cons, vector<string> args)
     return;
   }
   // string buff;
-  string filename=cons->filename;
+  string filename = cons->filename;
   // cons->script.clear();
-  if(args.size()>0)
+  if (args.size() > 0)
   {
-    filename=args[0];
-   
+    filename = args[0];
   }
 
   bool er = fileSystem.save(filename, &cons->script);
@@ -484,7 +482,7 @@ void save(Console *cons, vector<string> args)
   else
   {
     cons->filename = filename;
-     cons->scriptModified=false;
+    cons->scriptModified = false;
     cons->setHighlight(filename);
     display();
   }
@@ -503,7 +501,7 @@ void load(Console *cons, vector<string> args)
   // string buff;
   cons->script.clear();
   bool er = fileSystem.load(args[0], &cons->script);
- 
+
   if (!er)
   {
     printf("%s", termColor.Red);
@@ -512,7 +510,7 @@ void load(Console *cons, vector<string> args)
   }
   else
   {
-     cons->scriptModified=false;
+    cons->scriptModified = false;
     cons->filename = args[0];
     cons->setHighlight(args[0]);
     display();
@@ -525,7 +523,7 @@ void clear(Console *cons, vector<string> args)
   cons->filename = "";
   cons->setHighlight("");
   _push(config.ENDLINE);
-   cons->scriptModified=false;
+  cons->scriptModified = false;
 }
 void type(Console *cons, vector<string> args)
 {
@@ -566,7 +564,7 @@ void type(Console *cons, vector<string> args)
 
 void exitProgMode(Console *cons)
 {
-  if (cons->cmode == edit or cons->cmode==paste)
+  if (cons->cmode == edit or cons->cmode == paste)
   {
 
     // if (cons->internal_coordinates.line_y <= cons->script.size())
@@ -583,11 +581,11 @@ void exitProgMode(Console *cons)
         cons->script.erase(k);
         // printf("jj");
         k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
-        if(k==cons->script.end())
+        if (k == cons->script.end())
         {
           cons->script.push_back(cons->sentence);
         }
-else
+        else
         {
           cons->script.insert(k, cons->sentence);
         }
@@ -610,12 +608,12 @@ else
     Serial.printf("%s",termColor.Magenta);
     Serial.printf("Exiting edit mode to re enter Ctrl+p");
     */
-    
-     cls(cons);
+
+    cls(cons);
     cons->displayf = false;
     // cons->gotoline();
     // Serial.printf("%s",config.ESC_RESET);
-    
+
     _push(cons->prompt(cons).c_str());
     // cons->gotoline();
   }
@@ -651,7 +649,6 @@ void enterProgMode(Console *cons)
       if (cons->script.size() < cons->height - 1)
       {
         _push(cons->prompt(cons).c_str());
-
       }
     }
     else
@@ -661,190 +658,193 @@ void enterProgMode(Console *cons)
   }
   else
   {
-    
+
     exitProgMode(cons);
     _push(config.RESTORESCREEN);
   }
 }
 
-
 void saveFromEditor(Console *cons)
 {
-  if(cons->filename.size()<1)
+  if (cons->filename.size() < 1)
   {
-    cons->pushToConsole(string_format("%s%s%s",termColor.Red,"Error: No argument provided",config.ESC_RESET),true);
-   // vTaskDelay(600);
+    cons->pushToConsole(string_format("%s%s%s", termColor.Red, "Error: No argument provided", config.ESC_RESET), true);
+    // vTaskDelay(600);
   }
-   else if(cons->script.size()<1)
+  else if (cons->script.size() < 1)
   {
-    cons->pushToConsole(string_format("%s%s%s",termColor.Red,"Empty file",config.ESC_RESET),true);
-    //vTaskDelay(600);
+    cons->pushToConsole(string_format("%s%s%s", termColor.Red, "Empty file", config.ESC_RESET), true);
+    // vTaskDelay(600);
   }
   else
   {
-        if(cons->cmode==edit)
+    if (cons->cmode == edit)
     {
-        cons->storeCurrentLine();
+      cons->storeCurrentLine();
     }
     bool er = fileSystem.save(cons->filename, &cons->script);
     if (!er)
-  {
-        cons->pushToConsole(string_format("%s%s%s",termColor.Red,"Impossible to save file",config.ESC_RESET),true);
-    
-  }
-  else{
-    cons->scriptModified=false;
-     cons->pushToConsole("File saved",true);
-  }
+    {
+      cons->pushToConsole(string_format("%s%s%s", termColor.Red, "Impossible to save file", config.ESC_RESET), true);
+    }
+    else
+    {
+      cons->scriptModified = false;
+      cons->pushToConsole("File saved", true);
+    }
   }
   vTaskDelay(600);
-  cons->pushToConsole("",true);
+  cons->pushToConsole("", true);
 }
 
 void modePaste(Console *cons)
 {
-  cons->displayf=true;
-  if(cons->cmode==edit)
+  cons->displayf = true;
+  if (cons->cmode == edit)
   {
-    cons->cmode=paste;
-       _push(config.SAVE);
-   _push(config.HIDECURSOR);
-   _push(config.DOWN);
-   _push(config.LEFT);
-   _push(config.DELINE);
-   _push("PASTE MODE ACTIVATED");
-        _push(config.RESTORE);
+    cons->cmode = paste;
+    _push(config.SAVE);
+    _push(config.HIDECURSOR);
+    _push(config.DOWN);
+    _push(config.LEFT);
+    _push(config.DELINE);
+    _push("PASTE MODE ACTIVATED");
+    _push(config.RESTORE);
     _push(config.SHOWCURSOR);
-
   }
-  else if(cons->cmode==paste)
+  else if (cons->cmode == paste)
   {
-    //cls(cons);
-   cons->cmode=keyword;
-   
+    // cls(cons);
+    cons->cmode = keyword;
+
     enterProgMode(cons);
-   
   }
 }
 
 void echo(Console *cons, vector<string> args)
 {
-  if(cons->__echo)
+  if (cons->__echo)
   {
-    cons->__echo=false;
-    cons->pushToConsole("Echo off",true);
+    cons->__echo = false;
+    cons->pushToConsole("Echo off", true);
   }
-  else{
-    cons->__echo=true;
-    cons->pushToConsole("Echo on",true);
+  else
+  {
+    cons->__echo = true;
+    cons->pushToConsole("Echo on", true);
   }
 }
 
-void displayhelp(Console *cons,vector<string> args)
+void displayhelp(Console *cons, vector<string> args)
 {
-//_push("lkjkljklj\r\n");
+  //_push("lkjkljklj\r\n");
 
-    for (int i = 0; i < cons->keyword_commands.size(); i++)
+  for (int i = 0; i < cons->keyword_commands.size(); i++)
+  {
+    Console_keyword_command keyword_command = cons->keyword_commands[i];
+
+    if (keyword_command.description.compare("") != 0)
     {
-      Console_keyword_command keyword_command= cons->keyword_commands[i];
-
-      if(keyword_command.description.compare("")!=0)
-      {
-      _push(string_format("%s%s%s\t: %s",termColor.Cyan ,keyword_command.keyword.c_str() ,cons->defaultformat.c_str(),keyword_command.description.c_str()).c_str());
+      _push(string_format("%s%s%s\t: %s", termColor.Cyan, keyword_command.keyword.c_str(), cons->defaultformat.c_str(), keyword_command.description.c_str()).c_str());
       _push(config.ENDLINE);
-      }
     }
- _push(config.ENDLINE);
-    for (Console_esc_command esc_command:cons->esc_commands)
+  }
+  _push(config.ENDLINE);
+  for (Console_esc_command esc_command : cons->esc_commands)
+  {
+    // Console_esc_command esc_command = cons->esc_commands[i];
+
+    if (esc_command.description.compare("") != 0)
     {
-      //Console_esc_command esc_command = cons->esc_commands[i];
-        
-      if(esc_command.description.compare("")!=0)
-      {
-         //_push(string_format("CTRL + %d",esc_command.esc_code+64));
-    _push(string_format("%sCTRL + %c%s : %s",termColor.Cyan, esc_command.esc_code+'a'-1,cons->defaultformat.c_str(),esc_command.description.c_str()).c_str());
+      //_push(string_format("CTRL + %d",esc_command.esc_code+64));
+      _push(string_format("%sCTRL + %c%s : %s", termColor.Cyan, esc_command.esc_code + 'a' - 1, cons->defaultformat.c_str(), esc_command.description.c_str()).c_str());
       _push(config.ENDLINE);
-      }
     }
-
+  }
 }
 
 void setStartCopyBlock(Console *cons)
 {
 
-  cons->_endCopyBlock=-1;
- cons-> _startCopyBlock=cons->internal_coordinates.line_y ;
-
+  cons->_endCopyBlock = -1;
+  cons->_startCopyBlock = cons->internal_coordinates.line_y;
 }
 void setEndCopyBlock(Console *cons)
 {
-   cons-> _endCopyBlock=cons->internal_coordinates.line_y ;
-  if(cons->_startCopyBlock==-1)
+  if (cons->_startCopyBlock == -1)
   {
-    cons->_startCopyBlock=cons->_endCopyBlock;
+    cons->_startCopyBlock = cons->_endCopyBlock;
+    return;
   }
-
+  if (cons->internal_coordinates.line_y < cons->_startCopyBlock)
+  {
+    cons->_endCopyBlock = cons->_startCopyBlock;
+    cons->_startCopyBlock = cons->internal_coordinates.line_y;
+  }
+  else
+  {
+    cons->_endCopyBlock = cons->internal_coordinates.line_y;
+  }
 }
 void CopyBlock(Console *cons)
 {
-  if(cons->_startCopyBlock==-1)
+  if (cons->_startCopyBlock == -1)
     return;
-  if(cons->_endCopyBlock==-1)
-    cons->_endCopyBlock=cons->_startCopyBlock;
- _push(config.HIDECURSOR);
-int _start,_end;
-if(cons->_endCopyBlock>cons->_startCopyBlock)
-{
-  _start=cons->_startCopyBlock;
-  _end=cons->_endCopyBlock;
-}
-else
-{
-  _end=cons->_startCopyBlock;
-  _start=cons->_endCopyBlock;
-}
-  for(int i=_start;i<_end+1;i++)
+  if (cons->_endCopyBlock == -1)
+    cons->_endCopyBlock = cons->_startCopyBlock;
+  _push(config.HIDECURSOR);
+  int _start, _end;
+  if (cons->_endCopyBlock > cons->_startCopyBlock)
   {
-  list<string>::iterator k = cons->getLineIterator(cons->internal_coordinates.line_y- 1);
-              if (k == cons->script.end())
-              {
-                cons->script.push_back(*cons->getLineIterator(i-1));
-              }
-              else
-              {
-                cons->script.insert(k, *cons->getLineIterator(i-1));
-              }
-               cons->displayline(cons->internal_coordinates.line_y - 1);
-               cons->addLine(*cons->getLineIterator(i-1),"");
-               _push(locate(5 + cons->internal_coordinates.line_x, cons->internal_coordinates.cursor_y).c_str());
+    _start = cons->_startCopyBlock;
+    _end = cons->_endCopyBlock;
+  }
+  else
+  {
+    _end = cons->_startCopyBlock;
+    _start = cons->_endCopyBlock;
+  }
+  for (int i = _start; i < _end + 1; i++)
+  {
+    list<string>::iterator k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
+    if (k == cons->script.end())
+    {
+      cons->script.push_back(*cons->getLineIterator(i - 1));
+    }
+    else
+    {
+      cons->script.insert(k, *cons->getLineIterator(i - 1));
+    }
+    cons->displayline(cons->internal_coordinates.line_y - 1);
+    cons->addLine(*cons->getLineIterator(i - 1), "");
+    _push(locate(5 + cons->internal_coordinates.line_x, cons->internal_coordinates.cursor_y).c_str());
 
-              // cons->internal_coordinates.line_y++;
-             
+    // cons->internal_coordinates.line_y++;
   }
 
-//_push(locate(5 + cons->internal_coordinates.line_x, cons->internal_coordinates.cursor_y).c_str());
-              _push(config.SHOWCURSOR);
+  //_push(locate(5 + cons->internal_coordinates.line_x, cons->internal_coordinates.cursor_y).c_str());
+  _push(config.SHOWCURSOR);
 }
 
 void initEscCommands(Console *cons)
 {
-  cons->addEscCommand(5, enterProgMode,"Toggle Between the editor and the console");
-  cons->addEscCommand(27, extraEscCommand,"");
- cons->addEscCommand(16, modePaste,"Enter mode paste in the editor");
-  cons->addEscCommand(19, saveFromEditor,"Save the current file");
-   cons->addEscCommand(2, setStartCopyBlock,"Define start of block block");
-    cons->addEscCommand(4, setEndCopyBlock,"Define end of block block");
-    cons->addEscCommand(3, CopyBlock,"Copy selected Block");
+  cons->addEscCommand(5, enterProgMode, "Toggle Between the editor and the console");
+  cons->addEscCommand(27, extraEscCommand, "");
+  cons->addEscCommand(16, modePaste, "Enter mode paste in the editor");
+  cons->addEscCommand(19, saveFromEditor, "Save the current file");
+  cons->addEscCommand(2, setStartCopyBlock, "Define start of block block");
+  cons->addEscCommand(4, setEndCopyBlock, "Define end of block block");
+  cons->addEscCommand(3, CopyBlock, "Copy selected Block");
   // cons->addEscCommand(5, scrollup);
   // cons->addEscCommand(18, compilerun);
   // cons->addEscCommand(22, switchfooter);
-  cons->addKeywordCommand("ls", ls,"List the files option -l to have details");
-  cons->addKeywordCommand("cls", cls,"Clear the screen");
-  cons->addKeywordCommand("load", load,"Load a file ex:'load filename'");
-  cons->addKeywordCommand("save", save,"Save a file ex:'save filename' NB: if a current file is open 'save' will suffice ");
-  cons->addKeywordCommand("type", type,"List the content in the editor buffer");
-  cons->addKeywordCommand("clear", clear,"Clear the editor buffer");
-   cons->addKeywordCommand("echo", echo,"Toggle the display of the messages sent via pushToConsole");
-   cons->addKeywordCommand("help", displayhelp,"Display the help");
+  cons->addKeywordCommand("ls", ls, "List the files option -l to have details");
+  cons->addKeywordCommand("cls", cls, "Clear the screen");
+  cons->addKeywordCommand("load", load, "Load a file ex:'load filename'");
+  cons->addKeywordCommand("save", save, "Save a file ex:'save filename' NB: if a current file is open 'save' will suffice ");
+  cons->addKeywordCommand("type", type, "List the content in the editor buffer");
+  cons->addKeywordCommand("clear", clear, "Clear the editor buffer");
+  cons->addKeywordCommand("echo", echo, "Toggle the display of the messages sent via pushToConsole");
+  cons->addKeywordCommand("help", displayhelp, "Display the help");
   //  cons->addEscCommand(27,top);
 }
