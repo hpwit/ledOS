@@ -46,8 +46,10 @@ void promptdown(Console *cons)
 
 void editorup(Console *cons)
 {
+  int savex=cons->internal_coordinates.line_x;
   if (cons->internal_coordinates.line_y > 1)
   {
+    
     _push(config.HIDECURSOR);
     list<string>::iterator k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
     if (k == cons->script.end())
@@ -98,10 +100,18 @@ void editorup(Console *cons)
       _push(config.SHOWCURSOR);
     }
   }
+  if(savex<cons->internal_coordinates.line_x)
+  {
+    cons->internal_coordinates.line_x=savex;
+     cons->internal_coordinates.cursor_x=savex;
+     _push(locate(5 + cons->internal_coordinates.line_x,  cons->internal_coordinates.cursor_y).c_str());
+
+  }
 }
 
 void editordown(Console *cons)
 {
+  int savex=cons->internal_coordinates.line_x;
   if (cons->internal_coordinates.line_y <= cons->script.size() - 1)
   {
     _push(config.HIDECURSOR);
@@ -154,6 +164,13 @@ void editordown(Console *cons)
       _push(config.ERASE_FROM_CURSOR_TO_EOL);
       _push(config.SHOWCURSOR);
     }
+  }
+  if(savex<cons->internal_coordinates.line_x)
+  {
+    cons->internal_coordinates.line_x=savex;
+     cons->internal_coordinates.cursor_x=savex;
+     _push(locate(5 + cons->internal_coordinates.line_x,  cons->internal_coordinates.cursor_y).c_str());
+
   }
 }
 
