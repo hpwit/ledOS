@@ -780,37 +780,32 @@ void displayhelp(Console *cons, vector<string> args)
   }
 }
 
+vector<string> _blockCopy;
+
 void setStartCopyBlock(Console *cons)
 {
 
+_blockCopy.clear();
   cons->_endCopyBlock = -1;
   cons->_startCopyBlock = cons->internal_coordinates.line_y;
+  _blockCopy.push_back(*cons->getLineIterator(cons->internal_coordinates.line_y- 1));
 }
 void setEndCopyBlock(Console *cons)
 {
+  _blockCopy.clear();
+  cons->_endCopyBlock = cons->internal_coordinates.line_y;
   if (cons->_startCopyBlock == -1)
   {
     cons->_startCopyBlock = cons->_endCopyBlock;
-    return;
+   
   }
-  if (cons->internal_coordinates.line_y < cons->_startCopyBlock)
+  else if (cons->internal_coordinates.line_y < cons->_startCopyBlock)
   {
     cons->_endCopyBlock = cons->_startCopyBlock;
     cons->_startCopyBlock = cons->internal_coordinates.line_y;
   }
-  else
-  {
-    cons->_endCopyBlock = cons->internal_coordinates.line_y;
-  }
-}
-void CopyBlock(Console *cons)
-{
-  if (cons->_startCopyBlock == -1)
-    return;
-  if (cons->_endCopyBlock == -1)
-    cons->_endCopyBlock = cons->_startCopyBlock;
-  _push(config.HIDECURSOR);
-  int _start, _end;
+ 
+  int _start,_end;
   if (cons->_endCopyBlock > cons->_startCopyBlock)
   {
     _start = cons->_startCopyBlock;
@@ -821,19 +816,34 @@ void CopyBlock(Console *cons)
     _end = cons->_startCopyBlock;
     _start = cons->_endCopyBlock;
   }
-  for (int i = _start; i < _end + 1; i++)
+    for(int i=_start;i<_end+1;i++)
   {
-    list<string>::iterator k = cons->getLineIterator(cons->internal_coordinates.line_y - 1);
-    if (k == cons->script.end())
+    _blockCopy.push_back(*cons->getLineIterator(i - 1));
+  }
+}
+void CopyBlock(Console *cons)
+{
+  
+  _push(config.HIDECURSOR);
+  
+if( _blockCopy.size()==0)
+return;
+    
+  for (int i = 0; i < _blockCopy.size(); i++)
+  {
+    list<string>::iterator k = cons->getLineIterator(cons->internal_coordinates.line_y-1);
+ 
+   if (k == cons->script.end())
     {
-      cons->script.push_back(*cons->getLineIterator(i - 1));
+      cons->script.push_back(_blockCopy[i]);
     }
     else
     {
-      cons->script.insert(k, *cons->getLineIterator(i - 1));
+      cons->script.insert(k, _blockCopy[i]);
     }
     cons->displayline(cons->internal_coordinates.line_y - 1);
-    cons->addLine(*cons->getLineIterator(i - 1), "");
+    
+    cons->addLine("",*cons->getLineIterator(cons->internal_coordinates.line_y));
     _push(locate(5 + cons->internal_coordinates.line_x, cons->internal_coordinates.cursor_y).c_str());
 
     // cons->internal_coordinates.line_y++;
@@ -863,5 +873,6 @@ void initEscCommands(Console *cons)
   cons->addKeywordCommand("clear", clear, "Clear the editor buffer");
   cons->addKeywordCommand("echo", echo, "Toggle the display of the messages sent via pushToConsole");
   cons->addKeywordCommand("help", displayhelp, "Display the help");
+  cons->addKeywordCommand("rm", rm, "Erase a file");
   //  cons->addEscCommand(27,top);
 }
