@@ -786,7 +786,7 @@ void setStartCopyBlock(Console *cons)
 {
 
 _blockCopy.clear();
-  cons->_endCopyBlock = -1;
+  cons->_endCopyBlock = cons->internal_coordinates.line_y;
   cons->_startCopyBlock = cons->internal_coordinates.line_y;
   _blockCopy.push_back(*cons->getLineIterator(cons->internal_coordinates.line_y- 1));
 }
@@ -824,11 +824,11 @@ void setEndCopyBlock(Console *cons)
 void CopyBlock(Console *cons)
 {
   
-  _push(config.HIDECURSOR);
+ 
   
 if( _blockCopy.size()==0)
 return;
-    
+     _push(config.HIDECURSOR);
   for (int i = 0; i < _blockCopy.size(); i++)
   {
     list<string>::iterator k = cons->getLineIterator(cons->internal_coordinates.line_y-1);
@@ -853,6 +853,60 @@ return;
   _push(config.SHOWCURSOR);
 }
 
+void commentBlock(Console *cons)
+{
+
+    _push(config.HIDECURSOR);
+    int savey=cons->internal_coordinates.line_y;
+    int savecy=cons->internal_coordinates.cursor_y;
+    int savex=cons->internal_coordinates.line_x;
+if( _blockCopy.size()==0)
+return;
+_blockCopy.clear();
+  int _start,_end;
+  if (cons->_endCopyBlock > cons->_startCopyBlock)
+  {
+    _start = cons->_startCopyBlock;
+    _end = cons->_endCopyBlock;
+  }
+  else
+  {
+    _end = cons->_startCopyBlock;
+    _start = cons->_endCopyBlock;
+  }
+
+  
+    for(int i=_start;i<_end+1;i++)
+  {
+
+    list<string>::iterator k = cons->getLineIterator(i-1);
+    string se=(*k);
+    if(se.find("//")!=string::npos)
+    {
+      (*k)=se.substr(2,se.size());
+    }
+    else{
+    (*k)="//"+(*k);
+    }
+    int strpos=savecy-(savey-i);
+    if(strpos>0 and strpos<cons->height-2)
+    {
+      cons->internal_coordinates.cursor_y=strpos;
+      _push(locate(5 + cons->internal_coordinates.line_x, strpos).c_str());
+    cons->displayline(i - 1);
+    // _push(locate(5 + cons->internal_coordinates.line_x, cons->internal_coordinates.cursor_y).c_str());
+    }
+  }
+      cons->internal_coordinates.line_y=savey;
+    cons->internal_coordinates.cursor_y=savecy;
+    cons->internal_coordinates.line_x=savex;
+  cons->sentence=*cons->getLineIterator(cons->internal_coordinates.line_y-1);
+  _push(locate(5 + cons->internal_coordinates.line_x, cons->internal_coordinates.cursor_y).c_str());
+
+  _push(config.SHOWCURSOR);
+    cons->_startCopyBlock=-1;
+    cons->_endCopyBlock=-1;
+}
 void initEscCommands(Console *cons)
 {
   cons->addEscCommand(5, enterProgMode, "Toggle Between the editor and the console");
@@ -862,6 +916,7 @@ void initEscCommands(Console *cons)
   cons->addEscCommand(2, setStartCopyBlock, "Define start of block block");
   cons->addEscCommand(4, setEndCopyBlock, "Define end of block block");
   cons->addEscCommand(3, CopyBlock, "Copy selected Block");
+  cons->addEscCommand(14, commentBlock, "Comment/uncomment selected Block");
   // cons->addEscCommand(5, scrollup);
   // cons->addEscCommand(18, compilerun);
   // cons->addEscCommand(22, switchfooter);
