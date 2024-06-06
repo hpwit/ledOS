@@ -13,7 +13,8 @@ void insertLine(Console *cons);
 void _list(Console *cons, int start, int len);
 void initEscCommands(Console *cons);
 void manageTabulation(Console *cons);
-
+ vector<highlight_struct> highLighting;
+  
 class Console
 {
 public:
@@ -27,8 +28,7 @@ public:
   string search_sentence;
   vector<Console_esc_command> esc_commands;
   vector<Console_keyword_command> keyword_commands;
-  vector<highlight_struct> highLighting;
-  highlight_struct *current_hightlight;
+ highlight_struct *current_hightlight;
   ConsoleMode cmode;
   list<string> script;
 
@@ -76,7 +76,7 @@ public:
     cmode = keyword;
     prompt = &defaultPrompt;
     currentformat = defaultformat;
-    addHightLightinf("", default_highlightfunction, NULL, NULL);
+    addHightLightinf("XXXX", default_highlightfunction, NULL, NULL);
     current_hightlight = &highLighting[0];
     filename = "";
     sentence = "";
@@ -199,9 +199,9 @@ public:
     Serial.printf("%sPos %d,%d width:%d  height:%d curpos:%d,%d script size:%d  filename:%s%s", footerformat.c_str(), internal_coordinates.line_x, internal_coordinates.line_y, width, height, internal_coordinates.cursor_x, internal_coordinates.cursor_y, script.size(), scriptModified ? "*" : "", filename.c_str());
     Serial.print("\u001b[0K");
     Serial.printf("\u001b[%dC", width);
-    Serial.printf("\u001b[%dD", 11);
+    Serial.printf("\u001b[%dD", 12);
     Serial.printf(termBackgroundColor.BYellow);
-    Serial.printf(" mem:%6d %s", esp_get_free_heap_size(), currentformat.c_str());
+    Serial.printf(" mem:%7d %s", esp_get_free_heap_size(), currentformat.c_str());
     Serial.printf(config.RESTORE);
     Serial.printf(config.SHOWCURSOR);
   }
@@ -294,7 +294,9 @@ public:
         }
         count++;
       }
+      // printf("hid %s not foind\r\n",k[k.size() - 1].c_str());
     }
+   
     // LedOS.addHightLightinf(".sc", formatLine,formatInit,formatNewLine);
     current_hightlight = &highLighting[0];
   }

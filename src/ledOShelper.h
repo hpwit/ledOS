@@ -655,10 +655,11 @@ void enterProgMode(Console *cons)
     cons->internal_coordinates.line_y = 1;
     cons->internal_coordinates.cursor_x = 1;
     cons->internal_coordinates.line_x = 1;
-    cons->setHighlight(cons->filename);
+    if(cons->filename.size()>0)
+         cons->setHighlight(cons->filename);
     cls(cons);
     cons->displayf = true;
-    if (cons->current_hightlight->init)
+    if (cons->current_hightlight->init!=NULL)
       cons->current_hightlight->init();
     // _list(cons, 1, cons->height - 1);
     if (cons->script.size() == 0)
@@ -907,6 +908,15 @@ _blockCopy.clear();
     cons->_startCopyBlock=-1;
     cons->_endCopyBlock=-1;
 }
+void _setHightlight(Console *cons, vector<string> args)
+{
+  if(args.size()>0)
+  {
+    cons->setHighlight(args[0]);
+   // _push(config.ENDLINE);
+  }
+  //_push(config.ENDLINE);
+}
 void initEscCommands(Console *cons)
 {
   cons->addEscCommand(5, enterProgMode, "Toggle Between the editor and the console");
@@ -929,5 +939,6 @@ void initEscCommands(Console *cons)
   cons->addKeywordCommand("echo", echo, "Toggle the display of the messages sent via pushToConsole");
   cons->addKeywordCommand("help", displayhelp, "Display the help");
   cons->addKeywordCommand("rm", rm, "Erase a file");
+ cons->addKeywordCommand("sethighlight",_setHightlight,"Set syntax highlighting"); 
   //  cons->addEscCommand(27,top);
 }
