@@ -136,7 +136,7 @@ enum ConsoleMode
 
 string getEscapeSequence()
 {
-  bool first = true;
+ // bool first = true;
   char c;
   string res;
   res="";
@@ -162,7 +162,7 @@ return res;
 
 void getMousePos()
 {
-    coord co;
+   // coord co;
   char t,x, y;
   
     _push(config.ENABLE_MOUSE);
@@ -333,6 +333,8 @@ string default_highlightfunction(string str)
 
 highlight_struct default_highlight={
   .extension = " ",
-  .highLight =  default_highlightfunction
+  .highLight =  default_highlightfunction,
+  .init=NULL,
+  .newLine=NULL
 };
 #endif

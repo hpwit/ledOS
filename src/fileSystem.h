@@ -8,18 +8,18 @@
 #define __LED_OS__FILESYSTEM
 using namespace std;
 
-typedef struct mount_point
+typedef struct 
 {
     FS *fs;
     string name;
-};
+} mount_point;
 
-typedef struct _files
+typedef struct 
 {
     string name;
     bool isDirectory;
     uint16_t file_size;
-};
+} _files;
 
 bool compare_nocase(const _files &first, const _files &second)
 {
@@ -39,7 +39,7 @@ class FileSystem
 {
 public:
     FileSystem(){
-        init();
+      //  init();
     }
 void init()
 {
@@ -109,7 +109,8 @@ void init()
                 result.push_back("No Mount !!!");
                 return false;
             }
-            uint16_t nb_files, total_mem;
+            uint16_t nb_files = 0;
+            uint16_t total_mem =0;
             File root = current_mount->fs->open(current_path.c_str());
             File file = root.openNextFile();
             _files f;

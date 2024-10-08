@@ -182,7 +182,7 @@ void mouseMouvement(Console *cons)
   // we empty the buffer
   while (Serial.available() > 0)
   {
-    char f = Serial.read();
+     Serial.read();
   }
   switch (c1)
   {

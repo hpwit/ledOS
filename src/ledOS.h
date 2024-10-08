@@ -201,7 +201,7 @@ public:
     Serial.printf("\u001b[%dC", width);
     Serial.printf("\u001b[%dD", 12);
     Serial.printf(termBackgroundColor.BYellow);
-    Serial.printf(" mem:%7d %s", esp_get_free_heap_size(), currentformat.c_str());
+    Serial.printf(" mem:%7ld %s", esp_get_free_heap_size(), currentformat.c_str());
     Serial.printf(config.RESTORE);
     Serial.printf(config.SHOWCURSOR);
   }
@@ -213,7 +213,7 @@ public:
     // int sl =internal_coordinates.line_y;
     // int sc=  internal_coordinates.cursor_y;
     list<string>::iterator k = getLineIterator(internal_coordinates.line_y - 1);
-    list<string>::iterator k2 = getLineIterator(internal_coordinates.line_y);
+    //list<string>::iterator k2 = getLineIterator(internal_coordinates.line_y);
     while (k != script.end() and (internal_coordinates.cursor_y <= height - 1))
     {
 
