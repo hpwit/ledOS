@@ -1,5 +1,5 @@
 #include <SD.h>
-#include "SPIFFS.h"
+#include <LittleFS.h> 
 #include "FS.h"
 #include <string>
 #include <list>
@@ -7,7 +7,7 @@
 #ifndef __LED_OS__FILESYSTEM
 #define __LED_OS__FILESYSTEM
 using namespace std;
-
+#define FORMAT_LITTLEFS_IF_FAILED true
 typedef struct 
 {
     FS *fs;
@@ -44,19 +44,19 @@ public:
 void init()
 {
     printf("Init Filesystem\r\n");
-        mount_point spiff;
-        if (SPIFFS.begin(true))
+        mount_point littlefs;
+        if (LittleFS.begin(true))
         {
 
-            spiff.fs = &SPIFFS;
-            spiff.name = "SPIFFS";
-            mounts.push_back(spiff);
+            littlefs.fs = &LittleFS;
+            littlefs.name = "LittleFS";
+            mounts.push_back(littlefs);
             current_mount = &mounts.back();
             current_path = "/";
         }
         else
         {
-            printf("Unable to open SPIFFS\r\n");
+            printf("Unable to open LITTLEFS\r\n");
         }
     }
 
@@ -102,6 +102,7 @@ void init()
             }
             return true;
         }
+        
         else
         {
             if (current_mount == NULL)
@@ -134,35 +135,38 @@ void init()
 
             for (_files fil : dirfiles)
             {
+                string f=fil.name;
                 if (fil.isDirectory)
                 {
-                    result.push_back(string_format("%s/", fil.name.c_str()));
-                }
-                else
+                   f= f+"/";
+                }   
+                f = string_format("%s%30s", f.c_str(), "");
+                 f = f.substr(0, 20);
+                if (fil.isDirectory)
                 {
+                   f=termColor.Cyan+ f+termColor.BGreen;
+                }
+            
                     if (opt.compare("-l") == 0)
                     {
-                        string f = string_format("%s%30s", fil.name.c_str(), "");
-                        f = f.substr(0, 20);
-                        f = string_format("%s %6d bytes", f.c_str(), fil.file_size);
+                       // string f = string_format("%s%30s", disname.c_str(), "");
+                       // f = f.substr(0, 20);
+                        if(!fil.isDirectory)
+                            f = string_format("%s %6d bytes", f.c_str(), fil.file_size);
                         result.push_back(f);
                     }
-                    else if (opt.compare("w") == 0)
+                    else if(opt.compare("w") == 0)
                     {
-                        string f = fil.name.c_str();
-
-                        result.push_back(f);
+                        result.push_back(fil.name);
                     }
                     else
                     {
-                        string f = string_format("%s%30s", fil.name.c_str(), "");
-                        f = f.substr(0, 20);
                         result.push_back(f);
                     }
 
                     nb_files++;
                     total_mem += fil.file_size;
-                }
+                
                 // file = root.openNextFile();
             }
             result.push_back(string_format("%d file(s) %d bytes", nb_files, total_mem));
@@ -326,6 +330,64 @@ void init()
         }
     }
 
+bool path()
+{
+
+}
+bool chdir(string name)
+{
+    result.clear();
+    string _name;
+    if(name.find_first_of("/")==0)
+    {
+        _name=name;
+    }
+    else
+    {
+        _name = current_path + name;
+    }
+    if (!current_mount->fs->exists(_name.c_str()))
+    {
+         result.push_back(string_format("Impossible to change directory %s.", name.c_str()));
+         return false;
+
+    }
+    File f=current_mount->fs->open(_name.c_str());
+    if(!f.isDirectory())
+    {
+        result.push_back(string_format( "%s is not a directory.", name.c_str()));
+         return false;
+    }
+    if(name.compare("..")==0)
+    {
+        current_path=current_path.substr(0,current_path.find_last_of("/"));
+         current_path=current_path.substr(0,current_path.find_last_of("/")+1);
+    }
+    else  if(name.find_first_of("/")==1)
+    {
+        current_path=name;
+    }
+    else
+    {
+        current_path=_name+"/";
+    }
+    return true;
+
+   
+    /*
+        string _name = current_path + name;
+        if (!current_mount->fs->chdir(_name.c_str()))
+        {
+            result.push_back(string_format("Impossible to change directory %s.", name.c_str()));
+            return false;
+        }
+        else
+        {
+            result.push_back(string_format("new path is :%s.", name.c_str()));
+            return true;
+        }
+    */
+}
     string current_path = "";
     list<mount_point> mounts;
     list<_files> dirfiles;

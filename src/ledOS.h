@@ -644,6 +644,10 @@ public:
               }
               commands.addCommandToHistory(sentence);
               currentformat = defaultformat;
+              if(sentence.find_first_of("./")==0)
+              {
+                sentence.insert(2," ");
+              }
               vector<string> cmd_line = split(trim(sentence), " ");
 
               if (trim(cmd_line[0]).size() > 0)

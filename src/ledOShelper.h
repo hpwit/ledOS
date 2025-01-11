@@ -417,8 +417,13 @@ void manageTabulation(Console *cons)
   vector<string> j;
   string search_sentence;
   j = split(cons->sentence, " ");
-
+ string rest="";
   search_sentence = j[j.size() - 1];
+  if(search_sentence.find_first_of("./")==0)
+  {
+    search_sentence=search_sentence.substr(2,200);
+    rest="./";
+  }
   if (search_sentence.size() < 1)
   {
     return;
@@ -460,7 +465,7 @@ void manageTabulation(Console *cons)
     }
     else
     {
-      cons->sentence = f;
+      cons->sentence = rest+f;
     }
     cons->internal_coordinates.cursor_x = cons->sentence.size() + 1;
     cons->internal_coordinates.line_x = cons->sentence.size() + 1;
@@ -534,6 +539,62 @@ void load(Console *cons, vector<string> args)
   }
 }
 
+void mkdir(Console *cons, vector<string> args)
+{
+  _push(config.ENDLINE);
+  if (args.size() < 1)
+  {
+    printf("%s", termColor.Red);
+    printf("Error:%s", "No argument provided");
+    printf("%s\r\n", config.ESC_RESET);
+    return;
+  }
+  // string buff;
+  cons->script.clear();
+  bool er = fileSystem.mkdir(args[0]);
+
+  if (!er)
+  {
+    printf("%s", termColor.Red);
+    printf("%s", fileSystem.result.back().c_str());
+    printf("%s\r\n", config.ESC_RESET);
+  }
+  else
+  {
+    cons->scriptModified = false;
+    cons->filename = args[0];
+    cons->setHighlight(args[0]);
+    display();
+  }
+}
+void chdir(Console *cons, vector<string> args)
+{
+  _push(config.ENDLINE);
+  if (args.size() < 1)
+  {
+    printf("%s", termColor.Red);
+    printf("Error:%s", "No argument provided");
+    printf("%s\r\n", config.ESC_RESET);
+    return;
+  }
+  // string buff;
+  cons->script.clear();
+  bool er = fileSystem.chdir(args[0]);
+
+  if (!er)
+  {
+    printf("%s", termColor.Red);
+    printf("%s", fileSystem.result.back().c_str());
+    printf("%s\r\n", config.ESC_RESET);
+  }
+  else
+  {
+    cons->scriptModified = false;
+    cons->filename = args[0];
+    cons->setHighlight(args[0]);
+    display();
+  }
+}
 void clear(Console *cons, vector<string> args)
 {
   cons->script.clear();
@@ -933,6 +994,8 @@ void initEscCommands(Console *cons)
   cons->addKeywordCommand("ls", ls, "List the files option -l to have details");
   cons->addKeywordCommand("cls", cls, "Clear the screen");
   cons->addKeywordCommand("load", load, "Load a file ex:'load filename'");
+  cons->addKeywordCommand("mkdir", mkdir, "Create a directory ex:'mkdir filename'");
+   cons->addKeywordCommand("cd", chdir, "Change directory ex:'ch filename'");
   cons->addKeywordCommand("save", save, "Save a file ex:'save filename' NB: if a current file is open 'save' will suffice ");
   cons->addKeywordCommand("type", type, "List the content in the editor buffer");
   cons->addKeywordCommand("clear", clear, "Clear the editor buffer");
